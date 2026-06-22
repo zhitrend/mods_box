@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useModStore } from '../../stores/modStore';
-import { Card, Button, Input, Typography, Empty, Space, Tag, message } from 'antd';
+import { Card, Button, Input, Typography, Empty, Space, Tag, message, Modal } from 'antd';
 import { SaveOutlined, ReloadOutlined, DeleteOutlined, ClockCircleOutlined, DatabaseOutlined } from '@ant-design/icons';
 import { BackupInfo } from '../../types';
 
@@ -61,6 +61,17 @@ export function BackupManager() {
     }
   };
 
+  const confirmDelete = (id: string) => {
+    Modal.confirm({
+      title: '确认删除',
+      content: '确定要删除此备份吗？此操作不可撤销。',
+      okText: '删除',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk: () => handleDelete(id),
+    });
+  };
+
   return (
     <div>
       <Card style={{ marginBottom: 24 }}>
@@ -69,16 +80,26 @@ export function BackupManager() {
           备份当前模组配置和文件状态
         </Text>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 400 }}>
-          <Input
-            placeholder="备份名称"
-            value={backupName}
-            onChange={(e) => setBackupName(e.target.value)}
-          />
-          <Input
-            placeholder="备份描述（可选）"
-            value={backupDesc}
-            onChange={(e) => setBackupDesc(e.target.value)}
-          />
+          <label>
+            <Text style={{ display: 'block', marginBottom: 4 }}>备份名称</Text>
+            <Input
+              placeholder="备份名称…"
+              value={backupName}
+              onChange={(e) => setBackupName(e.target.value)}
+              name="backup-name"
+              autoComplete="off"
+            />
+          </label>
+          <label>
+            <Text style={{ display: 'block', marginBottom: 4 }}>备份描述</Text>
+            <Input
+              placeholder="备份描述（可选）…"
+              value={backupDesc}
+              onChange={(e) => setBackupDesc(e.target.value)}
+              name="backup-desc"
+              autoComplete="off"
+            />
+          </label>
           <Button
             type="primary"
             icon={<SaveOutlined />}
@@ -131,14 +152,14 @@ export function BackupManager() {
                     size="small"
                     icon={<ReloadOutlined />}
                     onClick={() => handleRestore(backup.id)}
-                    title="恢复"
+                    aria-label="恢复备份"
                   />
                   <Button
                     size="small"
                     danger
                     icon={<DeleteOutlined />}
-                    onClick={() => handleDelete(backup.id)}
-                    title="删除"
+                    onClick={() => confirmDelete(backup.id)}
+                    aria-label="删除备份"
                   />
                 </Space>
               </div>

@@ -28,7 +28,7 @@ impl ModInstaller {
         game_dir: &Path,
         game_version: &str,
         strategy: ConflictStrategy,
-        mod_name: Option<String>,
+        _mod_name: Option<String>,
     ) -> Result<ModInfo> {
         let temp_dir = std::env::temp_dir().join(format!("wot_mod_{}", Uuid::new_v4()));
         file::ensure_dir(&temp_dir).await?;
@@ -272,71 +272,70 @@ impl ModInstaller {
         let mut category = ModCategory::Other;
         let mut tags = Vec::new();
 
-        let archive = Archive::new(rar_path)
-            .open_for_listing()
+        let mut archive = Archive::new(rar_path)
+            .open_for_processing()
             .map_err(|e| AppError::Rar(format!("打开RAR失败: {}", e)))?;
 
-        for entry_result in archive {
-            let entry = entry_result
-                .map_err(|e| AppError::Rar(format!("读取RAR条目失败: {}", e)))?;
-            let entry_path = entry.filename.clone();
+        loop {
+            archive = match archive.read_header() {
+                Err(e) => return Err(AppError::Rar(format!("读取RAR头失败: {}", e))),
+                Ok(None) => break,
+                Ok(Some(entry_archive)) => {
+                    let entry_path = entry_archive.entry().filename.to_string_lossy().to_string();
+                    let is_dir = entry_archive.entry().is_directory();
 
-            if entry.is_directory() {
-                let dir_path = temp_dir.join(&entry_path);
-                let _ = std::fs::create_dir_all(&dir_path);
-                continue;
-            }
-
-            if entry_path.ends_with("manifest.json") || entry_path.ends_with("mod.json") {
-                let mut content = String::new();
-                if let Ok(data) = entry.read() {
-                    if let Ok(s) = String::from_utf8(data) {
-                        content = s;
+                    if is_dir {
+                        let dir_path = temp_dir.join(&entry_path);
+                        let _ = std::fs::create_dir_all(&dir_path);
+                        entry_archive.skip()
+                            .map_err(|e| AppError::Rar(format!("跳过目录失败: {}", e)))?
+                    } else if entry_path.ends_with("manifest.json") || entry_path.ends_with("mod.json") {
+                        let (data, next_archive) = entry_archive.read()
+                            .map_err(|e| AppError::Rar(format!("读取清单文件失败: {}", e)))?;
+                        let content = String::from_utf8_lossy(&data).to_string();
+                        if let Ok(manifest) =
+                            serde_json::from_str::<serde_json::Value>(&content)
+                        {
+                            if let Some(n) = manifest.get("name").and_then(|v| v.as_str()) {
+                                name = n.to_string();
+                            }
+                            if let Some(v) = manifest.get("version").and_then(|v| v.as_str()) {
+                                version = v.to_string();
+                            }
+                            if let Some(a) = manifest.get("author").and_then(|v| v.as_str()) {
+                                author = a.to_string();
+                            }
+                            if let Some(d) = manifest.get("description").and_then(|v| v.as_str()) {
+                                description = d.to_string();
+                            }
+                            if let Some(c) = manifest.get("category").and_then(|v| v.as_str()) {
+                                category = ModCategory::from_str(c);
+                            }
+                            if let Some(t) = manifest.get("tags").and_then(|v| v.as_array()) {
+                                tags = t.iter().filter_map(|x| x.as_str().map(String::from)).collect();
+                            }
+                        }
+                        next_archive
+                    } else {
+                        let target_path = Self::rewrite_mod_path(&entry_path, game_version);
+                        let dest_path = temp_dir.join(target_path.display().to_string());
+                        if let Some(parent) = dest_path.parent() {
+                            let _ = std::fs::create_dir_all(parent);
+                        }
+                        let next = entry_archive
+                            .extract_to(&dest_path)
+                            .map_err(|e| AppError::Rar(format!("提取RAR条目失败: {}", e)))?;
+                        let file_hash = hash::hash_file_sync(&dest_path)?;
+                        let file_size = dest_path.metadata().map_err(AppError::Io)?.len();
+                        mod_files.push(ModFile {
+                            relative_path: target_path.display().to_string(),
+                            hash: file_hash,
+                            size: file_size,
+                        });
+                        next
                     }
                 }
-                if let Ok(manifest) =
-                    serde_json::from_str::<serde_json::Value>(&content)
-                {
-                    if let Some(n) = manifest.get("name").and_then(|v| v.as_str()) {
-                        name = n.to_string();
-                    }
-                    if let Some(v) = manifest.get("version").and_then(|v| v.as_str()) {
-                        version = v.to_string();
-                    }
-                    if let Some(a) = manifest.get("author").and_then(|v| v.as_str()) {
-                        author = a.to_string();
-                    }
-                    if let Some(d) = manifest.get("description").and_then(|v| v.as_str()) {
-                        description = d.to_string();
-                    }
-                    if let Some(c) = manifest.get("category").and_then(|v| v.as_str()) {
-                        category = ModCategory::from_str(c);
-                    }
-                    if let Some(t) = manifest.get("tags").and_then(|v| v.as_array()) {
-                        tags = t.iter().filter_map(|x| x.as_str().map(String::from)).collect();
-                    }
-                }
-                continue;
-            }
-
-            let target_path = Self::rewrite_mod_path(&entry_path, game_version);
-            let dest_path = temp_dir.join(target_path.display().to_string());
-            if let Some(parent) = dest_path.parent() {
-                let _ = std::fs::create_dir_all(parent);
-            }
-
-            entry
-                .extract_to(&dest_path)
-                .map_err(|e| AppError::Rar(format!("提取RAR条目失败: {}", e)))?;
-
-            let file_hash = hash::hash_file_sync(&dest_path)?;
-            let file_size = dest_path.metadata().map_err(AppError::Io)?.len();
-
-            mod_files.push(ModFile {
-                relative_path: target_path.display().to_string(),
-                hash: file_hash,
-                size: file_size,
-            });
+            };
         }
 
         Ok(ExtractResult {

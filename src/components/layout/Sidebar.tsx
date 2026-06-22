@@ -54,22 +54,25 @@ export function Sidebar() {
           gap: 10,
         }}
       >
-        <div
+        <button
           onClick={toggleSidebar}
+          aria-label={sidebarCollapsed ? '展开侧栏' : '收起侧栏'}
           style={{
-            cursor: 'pointer',
             fontSize: 18,
             padding: 6,
             borderRadius: 6,
             color: 'var(--armory-gold)',
             transition: 'all 0.2s',
             flexShrink: 0,
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            lineHeight: 1,
           }}
           className="hoverable-icon"
-          title={sidebarCollapsed ? '展开侧栏' : '收起侧栏'}
         >
           {sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-        </div>
+        </button>
         {!sidebarCollapsed && (
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
@@ -101,13 +104,15 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <div style={{ flex: 1, padding: '8px 0' }}>
+      <nav style={{ flex: 1, padding: '8px 0' }} role="navigation" aria-label="主导航">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
-            <div
+            <button
               key={item.path}
               onClick={() => navigate(item.path)}
+              aria-current={isActive ? 'page' : undefined}
+              aria-label={item.label}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -122,11 +127,13 @@ export function Sidebar() {
                 letterSpacing: '0.02em',
                 color: isActive ? 'var(--armory-gold)' : 'var(--armory-text-secondary)',
                 background: isActive ? 'var(--armory-gold-glow)' : 'transparent',
+                border: 'none',
+                width: sidebarCollapsed ? 'auto' : 'calc(100% - 16px)',
+                textAlign: 'left',
                 position: 'relative',
                 transition: 'all 0.2s ease',
               }}
               className={isActive ? undefined : 'nav-item'}
-              title={item.label}
             >
               {isActive && (
                 <div
@@ -142,12 +149,12 @@ export function Sidebar() {
                   }}
                 />
               )}
-              <span style={{ fontSize: 16, lineHeight: 1, flexShrink: 0 }}>{item.icon}</span>
+              <span style={{ fontSize: 16, lineHeight: 1, flexShrink: 0 }} aria-hidden="true">{item.icon}</span>
               {!sidebarCollapsed && <span>{item.label}</span>}
-            </div>
+            </button>
           );
         })}
-      </div>
+      </nav>
 
       {/* Bottom info */}
       <div

@@ -340,6 +340,21 @@ body::after {
   animation: goldPulse 3s ease-in-out infinite;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .animate-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .gold-glow {
+    animation: none !important;
+    box-shadow: 0 0 8px var(--armory-gold-glow) !important;
+  }
+  .hoverable-card:hover {
+    transform: none !important;
+  }
+}
+
 /* Hoverable card effect */
 .hoverable-card {
   transition: all 0.25s ease;

@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useModStore } from '../../stores/modStore';
 import { ModCard } from './ModCard';
 import { ModDetail } from './ModDetail';
-import { Select, Button, Space, Typography, Checkbox, Row, Col, Empty } from 'antd';
+import { Select, Button, Space, Typography, Checkbox, Row, Col, Empty, Modal } from 'antd';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,

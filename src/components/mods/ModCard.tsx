@@ -1,5 +1,5 @@
 import { ModInfo, CATEGORY_LABELS, STATUS_LABELS } from '../../types';
-import { Card, Tag, Switch, Button, Tooltip } from 'antd';
+import { Card, Tag, Switch, Button, Tooltip, Modal } from 'antd';
 import { DeleteOutlined, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { formatFileSize } from '../../lib/utils';
 
@@ -33,6 +33,17 @@ const categoryColorMap: Record<string, string> = {
 };
 
 export function ModCard({ mod, onToggle, onUninstall, onDetail }: ModCardProps) {
+  const handleUninstallClick = () => {
+    Modal.confirm({
+      title: '确认卸载',
+      content: `确定要卸载 "${mod.name}" 吗？`,
+      okText: '卸载',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk: () => onUninstall(mod.id),
+    });
+  };
+
   return (
     <Card
       size="small"
@@ -66,10 +77,10 @@ export function ModCard({ mod, onToggle, onUninstall, onDetail }: ModCardProps) 
             size="small"
           />
           <Tooltip title="详情">
-            <Button type="text" size="small" icon={<InfoCircleOutlined />} onClick={() => onDetail(mod)} />
+            <Button type="text" size="small" icon={<InfoCircleOutlined />} onClick={() => onDetail(mod)} aria-label="查看详情" />
           </Tooltip>
           <Tooltip title="卸载">
-            <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => onUninstall(mod.id)} />
+            <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={handleUninstallClick} aria-label="卸载模组" />
           </Tooltip>
         </div>
       </div>

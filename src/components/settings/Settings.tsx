@@ -80,12 +80,17 @@ export function Settings() {
         </div>
 
         <div style={{ marginBottom: 16 }}>
-          <Text strong style={{ display: 'block', marginBottom: 4 }}>游戏安装路径</Text>
-          <Input
-            value={gamePath}
-            onChange={(e) => setGamePath(e.target.value)}
-            placeholder="C:\\Games\\World_of_Tanks"
-          />
+          <label>
+            <Text strong style={{ display: 'block', marginBottom: 4 }}>游戏安装路径</Text>
+            <Input
+              value={gamePath}
+              onChange={(e) => setGamePath(e.target.value)}
+              placeholder="C:\\Games\\World_of_Tanks…"
+              name="game-path"
+              autoComplete="off"
+              spellCheck={false}
+            />
+          </label>
         </div>
 
         <div style={{ marginBottom: 16 }}>

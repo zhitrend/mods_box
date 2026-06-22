@@ -7,7 +7,7 @@ export function About() {
     <div style={{ maxWidth: 560 }}>
       <Card>
         <div style={{ textAlign: 'center', padding: '24px 0' }}>
-          <div style={{ fontSize: 48, marginBottom: 8 }}>🎮</div>
+          <div style={{ fontSize: 48, marginBottom: 8 }} aria-hidden="true">🎮</div>
           <Title level={3}>WoT Mods Manager</Title>
           <Text type="secondary">v0.1.0</Text>
         </div>

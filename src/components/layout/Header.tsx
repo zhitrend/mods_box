@@ -41,7 +41,7 @@ export function Header() {
             : <MoonOutlined style={{ color: 'var(--armory-text-secondary)' }} />
         }
         onClick={toggleDarkMode}
-        title="切换主题"
+        aria-label="切换主题"
         style={{ fontSize: 16 }}
       />
     </div>

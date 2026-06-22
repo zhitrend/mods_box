@@ -137,7 +137,7 @@ export function LoginPage({ onBound }: LoginPageProps) {
             已绑定
           </div>
           <div style={{ color: 'var(--armory-text-secondary)', fontSize: 14, lineHeight: 1.6 }}>
-            正在进入应用...
+            正在进入应用…
           </div>
           {boundInfo.expire_time && (
             <div
@@ -167,7 +167,7 @@ export function LoginPage({ onBound }: LoginPageProps) {
       }}
     >
       {/* Decorative corner elements */}
-      <div
+      <div aria-hidden="true"
         style={{
           position: 'absolute',
           top: 40,
@@ -179,7 +179,7 @@ export function LoginPage({ onBound }: LoginPageProps) {
           opacity: 0.3,
         }}
       />
-      <div
+      <div aria-hidden="true"
         style={{
           position: 'absolute',
           top: 40,
@@ -191,7 +191,7 @@ export function LoginPage({ onBound }: LoginPageProps) {
           opacity: 0.3,
         }}
       />
-      <div
+      <div aria-hidden="true"
         style={{
           position: 'absolute',
           bottom: 40,
@@ -203,7 +203,7 @@ export function LoginPage({ onBound }: LoginPageProps) {
           opacity: 0.3,
         }}
       />
-      <div
+      <div aria-hidden="true"
         style={{
           position: 'absolute',
           bottom: 40,
@@ -254,7 +254,7 @@ export function LoginPage({ onBound }: LoginPageProps) {
               margin: '0 auto 16px',
             }}
           >
-            <SafetyCertificateOutlined style={{ fontSize: 36, color: 'var(--armory-gold)' }} />
+            <SafetyCertificateOutlined style={{ fontSize: 36, color: 'var(--armory-gold)' }} aria-hidden="true" />
           </div>
           <div
             style={{
@@ -283,6 +283,9 @@ export function LoginPage({ onBound }: LoginPageProps) {
               onPressEnter={handleBind}
               size="large"
               disabled={loading}
+              name="kami"
+              autoComplete="off"
+              spellCheck={false}
               style={{ height: 44, paddingLeft: 40 }}
             />
           </div>
@@ -303,7 +306,7 @@ export function LoginPage({ onBound }: LoginPageProps) {
           loading={loading}
           style={{ height: 44, fontSize: 16, fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, letterSpacing: '0.06em' }}
         >
-          绑 定
+          绑定
         </Button>
 
         <div
