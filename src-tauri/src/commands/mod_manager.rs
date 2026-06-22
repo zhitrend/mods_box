@@ -32,20 +32,36 @@ pub async fn install_mod(
         _ => ConflictStrategy::SmartMerge,
     };
 
-    let zip_path = PathBuf::from(&file_path);
-    if !zip_path.exists() {
+    let file_path_buf = PathBuf::from(&file_path);
+    if !file_path_buf.exists() {
         return Err(format!("File not found: {}", file_path));
     }
 
-    let mod_info = ModInstaller::install_from_zip(
-        &zip_path,
-        &game_dir,
-        &game_version,
-        conflict_strategy,
-        None,
-    )
-    .await
-    .map_err(|e| e.to_string())?;
+    let ext = file_path_buf
+        .extension()
+        .and_then(|s| s.to_str())
+        .map(|s| s.to_lowercase())
+        .unwrap_or_default();
+
+    let mod_info = match ext.as_str() {
+        "rar" => ModInstaller::install_from_rar(
+            &file_path_buf,
+            &game_dir,
+            &game_version,
+            conflict_strategy,
+        )
+        .await
+        .map_err(|e| e.to_string())?,
+        _ => ModInstaller::install_from_zip(
+            &file_path_buf,
+            &game_dir,
+            &game_version,
+            conflict_strategy,
+            None,
+        )
+        .await
+        .map_err(|e| e.to_string())?,
+    };
 
     let mut mods = state.mods.lock().await;
     mods.push(mod_info.clone());

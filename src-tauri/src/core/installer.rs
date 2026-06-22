@@ -8,6 +8,7 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 use tokio::fs;
 use uuid::Uuid;
+use unrar::Archive;
 
 
 const ZIP_PASSWORD: &str = "wotmods_box_2024";
@@ -31,10 +32,30 @@ impl ModInstaller {
     ) -> Result<ModInfo> {
         let temp_dir = std::env::temp_dir().join(format!("wot_mod_{}", Uuid::new_v4()));
         file::ensure_dir(&temp_dir).await?;
-
         let extracted = Self::extract_zip(zip_path, &temp_dir, game_version)?;
+        Self::finalize_install(extracted, &temp_dir, zip_path, game_dir, game_version, strategy).await
+    }
 
-        let res_mods_dir = game_dir.join("res_mods").join(game_version);
+    pub async fn install_from_rar(
+        rar_path: &Path,
+        game_dir: &Path,
+        game_version: &str,
+        strategy: ConflictStrategy,
+    ) -> Result<ModInfo> {
+        let temp_dir = std::env::temp_dir().join(format!("wot_mod_{}", Uuid::new_v4()));
+        file::ensure_dir(&temp_dir).await?;
+        let extracted = Self::extract_rar(rar_path, &temp_dir, game_version)?;
+        Self::finalize_install(extracted, &temp_dir, rar_path, game_dir, game_version, strategy).await
+    }
+
+    async fn finalize_install(
+        extracted: ExtractResult,
+        temp_dir: &Path,
+        source_path: &Path,
+        game_dir: &Path,
+        game_version: &str,
+        strategy: ConflictStrategy,
+    ) -> Result<ModInfo> {
         let installed_mods = Vec::new();
         let mod_files: Vec<ModFile> = extracted.mod_files;
 
@@ -113,11 +134,29 @@ impl ModInstaller {
             conflicts: vec![],
             dependencies: vec![],
             tags: extracted.tags,
-            source: Some(zip_path.display().to_string()),
+            source: Some(source_path.display().to_string()),
             enabled: true,
         };
 
         Ok(mod_info)
+    }
+
+    fn rewrite_mod_path(entry_path: &str, game_version: &str) -> PathBuf {
+        if entry_path.starts_with("res_mods/")
+            || entry_path.starts_with("mods/")
+            || entry_path.starts_with("scripts/")
+            || entry_path.starts_with("gui/")
+        {
+            let relative = if entry_path.starts_with("res_mods/") {
+                entry_path.trim_start_matches("res_mods/")
+            } else {
+                entry_path
+            };
+            let versioned_path = format!("res_mods/{}/{}", game_version, relative);
+            PathBuf::from(&versioned_path)
+        } else {
+            PathBuf::from(entry_path)
+        }
     }
 
     fn extract_zip(
@@ -185,21 +224,7 @@ impl ModInstaller {
                 continue;
             }
 
-            let target_path = if entry_path.starts_with("res_mods/")
-                || entry_path.starts_with("mods/")
-                || entry_path.starts_with("scripts/")
-                || entry_path.starts_with("gui/")
-            {
-                let relative = if entry_path.starts_with("res_mods/") {
-                    entry_path.trim_start_matches("res_mods/")
-                } else {
-                    &entry_path
-                };
-                let versioned_path = format!("res_mods/{}/{}", game_version, relative);
-                PathBuf::from(&versioned_path)
-            } else {
-                PathBuf::from(&entry_path)
-            };
+            let target_path = Self::rewrite_mod_path(&entry_path, game_version);
 
             let dest_path = temp_dir.join(target_path.display().to_string());
             if let Some(parent) = dest_path.parent() {
@@ -208,6 +233,101 @@ impl ModInstaller {
 
             let mut outfile = std::fs::File::create(&dest_path).map_err(AppError::Io)?;
             std::io::copy(&mut entry, &mut outfile).map_err(AppError::Io)?;
+
+            let file_hash = hash::hash_file_sync(&dest_path)?;
+            let file_size = dest_path.metadata().map_err(AppError::Io)?.len();
+
+            mod_files.push(ModFile {
+                relative_path: target_path.display().to_string(),
+                hash: file_hash,
+                size: file_size,
+            });
+        }
+
+        Ok(ExtractResult {
+            name,
+            version,
+            author,
+            description,
+            category,
+            tags,
+            mod_files,
+        })
+    }
+
+    fn extract_rar(
+        rar_path: &Path,
+        temp_dir: &Path,
+        game_version: &str,
+    ) -> Result<ExtractResult> {
+        let mut mod_files = Vec::new();
+        let mut name = rar_path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("Unknown")
+            .to_string();
+        let mut version = "1.0.0".to_string();
+        let mut author = "Unknown".to_string();
+        let mut description = String::new();
+        let mut category = ModCategory::Other;
+        let mut tags = Vec::new();
+
+        let archive = Archive::new(rar_path)
+            .open_for_listing()
+            .map_err(|e| AppError::Rar(format!("打开RAR失败: {}", e)))?;
+
+        for entry_result in archive {
+            let entry = entry_result
+                .map_err(|e| AppError::Rar(format!("读取RAR条目失败: {}", e)))?;
+            let entry_path = entry.filename.clone();
+
+            if entry.is_directory() {
+                let dir_path = temp_dir.join(&entry_path);
+                let _ = std::fs::create_dir_all(&dir_path);
+                continue;
+            }
+
+            if entry_path.ends_with("manifest.json") || entry_path.ends_with("mod.json") {
+                let mut content = String::new();
+                if let Ok(data) = entry.read() {
+                    if let Ok(s) = String::from_utf8(data) {
+                        content = s;
+                    }
+                }
+                if let Ok(manifest) =
+                    serde_json::from_str::<serde_json::Value>(&content)
+                {
+                    if let Some(n) = manifest.get("name").and_then(|v| v.as_str()) {
+                        name = n.to_string();
+                    }
+                    if let Some(v) = manifest.get("version").and_then(|v| v.as_str()) {
+                        version = v.to_string();
+                    }
+                    if let Some(a) = manifest.get("author").and_then(|v| v.as_str()) {
+                        author = a.to_string();
+                    }
+                    if let Some(d) = manifest.get("description").and_then(|v| v.as_str()) {
+                        description = d.to_string();
+                    }
+                    if let Some(c) = manifest.get("category").and_then(|v| v.as_str()) {
+                        category = ModCategory::from_str(c);
+                    }
+                    if let Some(t) = manifest.get("tags").and_then(|v| v.as_array()) {
+                        tags = t.iter().filter_map(|x| x.as_str().map(String::from)).collect();
+                    }
+                }
+                continue;
+            }
+
+            let target_path = Self::rewrite_mod_path(&entry_path, game_version);
+            let dest_path = temp_dir.join(target_path.display().to_string());
+            if let Some(parent) = dest_path.parent() {
+                let _ = std::fs::create_dir_all(parent);
+            }
+
+            entry
+                .extract_to(&dest_path)
+                .map_err(|e| AppError::Rar(format!("提取RAR条目失败: {}", e)))?;
 
             let file_hash = hash::hash_file_sync(&dest_path)?;
             let file_size = dest_path.metadata().map_err(AppError::Io)?.len();

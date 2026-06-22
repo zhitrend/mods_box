@@ -18,6 +18,8 @@ pub enum AppError {
     ModInstall(String),
     #[error("Backup error: {0}")]
     Backup(String),
+    #[error("RAR error: {0}")]
+    Rar(String),
     #[error("{0}")]
     Other(String),
 }
