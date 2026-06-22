@@ -9,7 +9,6 @@ interface ModStore {
   searchQuery: string;
   filterStatus: string;
   sidebarCollapsed: boolean;
-  darkMode: boolean;
 
   isBound: boolean;
   kamiInfo: { kami: string; expire_time: string | null; expire_ts: number | null } | null;
@@ -25,7 +24,6 @@ interface ModStore {
   setSearchQuery: (query: string) => void;
   setFilterStatus: (status: string) => void;
   toggleSidebar: () => void;
-  toggleDarkMode: () => void;
   setIsBound: (bound: boolean) => void;
   setKamiInfo: (info: any) => void;
   setVipStatus: (status: string) => void;
@@ -39,7 +37,6 @@ export const useModStore = create<ModStore>((set) => ({
   searchQuery: '',
   filterStatus: 'all',
   sidebarCollapsed: false,
-  darkMode: false,
   isBound: false,
   kamiInfo: null,
   vipStatus: '',
@@ -59,16 +56,6 @@ export const useModStore = create<ModStore>((set) => ({
   setFilterStatus: (status) => set({ filterStatus: status }),
   toggleSidebar: () =>
     set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
-  toggleDarkMode: () =>
-    set((state) => {
-      const newMode = !state.darkMode;
-      if (newMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      return { darkMode: newMode };
-    }),
   setIsBound: (bound) => set({ isBound: bound }),
   setKamiInfo: (info) => set({ kamiInfo: info }),
   setVipStatus: (status) => set({ vipStatus: status }),

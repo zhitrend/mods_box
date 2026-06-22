@@ -16,7 +16,7 @@ export function ModDetail({ mod, onClose }: ModDetailProps) {
       title={
         <div>
           <span style={{ fontSize: 16, fontWeight: 600 }}>{mod.name}</span>
-          <div style={{ fontSize: 13, color: 'rgba(128,128,128,0.75)', fontWeight: 400, marginTop: 2 }}>
+          <div style={{ fontSize: 13, color: 'var(--armory-text-secondary)', fontWeight: 400, marginTop: 2 }}>
             v{mod.version} by {mod.author}
           </div>
         </div>
@@ -62,7 +62,7 @@ export function ModDetail({ mod, onClose }: ModDetailProps) {
           </Text>
           <div style={{ maxHeight: 128, overflow: 'auto' }}>
             {mod.conflicts.map((conflict, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', background: 'rgba(255,77,79,0.04)', borderRadius: 4, marginBottom: 2, fontSize: 12 }}>
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', background: 'rgba(255,77,79,0.04)', borderRadius: 4, marginBottom: 2, fontSize: 12, color: 'var(--armory-error)' }}>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{conflict.file_path}</span>
                 <Tag style={{ flexShrink: 0, marginLeft: 8 }}>{conflict.resolution}</Tag>
               </div>
@@ -79,8 +79,8 @@ export function ModDetail({ mod, onClose }: ModDetailProps) {
         <div style={{ maxHeight: 160, overflow: 'auto' }}>
           {mod.files.map((file, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 8px', background: 'rgba(128,128,128,0.04)', borderRadius: 4, marginBottom: 2, fontSize: 12 }}>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.relative_path}</span>
-              <span style={{ flexShrink: 0, marginLeft: 8, color: 'rgba(128,128,128,0.65)' }}>{formatFileSize(file.size)}</span>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--armory-text-secondary)' }}>{file.relative_path}</span>
+              <span style={{ flexShrink: 0, marginLeft: 8, color: 'var(--armory-text-dim)' }}>{formatFileSize(file.size)}</span>
             </div>
           ))}
         </div>

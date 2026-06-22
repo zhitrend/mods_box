@@ -131,7 +131,7 @@ export function BackupManager() {
                   justifyContent: 'space-between',
                   padding: '12px 16px',
                   borderRadius: 8,
-                  border: '1px solid rgba(128,128,128,0.15)',
+                  border: '1px solid var(--armory-border)',
                 }}
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -139,7 +139,7 @@ export function BackupManager() {
                     <Text strong>{backup.name}</Text>
                     <Tag>{backup.mod_list.length} 个模组</Tag>
                   </div>
-                  <Space size={16} style={{ fontSize: 12, color: 'rgba(128,128,128,0.65)' }}>
+                  <Space size={16} style={{ fontSize: 12, color: 'var(--armory-text-dim)' }}>
                     <span>
                       <ClockCircleOutlined style={{ marginRight: 4 }} />
                       {backup.created_at}

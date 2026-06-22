@@ -5,7 +5,7 @@ import { Layout as AntLayout } from 'antd';
 
 export function Layout() {
   return (
-    <AntLayout style={{ height: '100vh', background: 'var(--color-background)' }}>
+    <AntLayout style={{ height: '100vh', background: 'var(--armory-bg)' }}>
       <Sidebar />
       <AntLayout>
         <Header />

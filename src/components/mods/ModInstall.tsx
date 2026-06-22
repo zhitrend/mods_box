@@ -94,13 +94,13 @@ export function ModInstall() {
           ref={dropRef}
           onClick={handleFileSelect}
           style={{
-            border: `2px dashed ${dragging ? '#cba258' : 'rgba(128,128,128,0.35)'}`,
+            border: `2px dashed ${dragging ? 'var(--armory-gold)' : 'var(--armory-border)'}`,
             borderRadius: 8,
             padding: '40px 20px',
             textAlign: 'center',
             cursor: installing ? 'not-allowed' : 'pointer',
-            transition: 'all 0.3s',
-            background: dragging ? 'rgba(203,162,88,0.08)' : 'transparent',
+            transition: 'border-color 0.3s, background-color 0.3s',
+            background: dragging ? 'var(--armory-gold-glow)' : 'transparent',
             marginBottom: 16,
           }}
           onMouseEnter={() => { if (!installing) setDragging(true); }}
@@ -109,15 +109,15 @@ export function ModInstall() {
           {installing ? (
             <div>
               <LoadingOutlined style={{ fontSize: 40, color: '#cba258' }} />
-              <p style={{ marginTop: 8, color: 'rgba(128,128,128,0.75)' }}>正在安装...</p>
+              <p style={{ marginTop: 8, color: 'var(--armory-text-secondary)' }}>正在安装…</p>
             </div>
           ) : (
             <div>
-              <InboxOutlined style={{ fontSize: 40, color: dragging ? '#cba258' : 'rgba(128,128,128,0.45)' }} />
-              <p style={{ marginTop: 8, fontWeight: 500, color: dragging ? '#cba258' : undefined }}>
+              <InboxOutlined style={{ fontSize: 40, color: dragging ? 'var(--armory-gold)' : 'var(--armory-text-dim)' }} />
+              <p style={{ marginTop: 8, fontWeight: 500, color: dragging ? 'var(--armory-gold)' : undefined }}>
                 拖拽文件到此处，或点击选择文件
               </p>
-              <p style={{ color: 'rgba(128,128,128,0.65)' }}>支持 ZIP / WOTMOD / RAR 格式</p>
+              <p style={{ color: 'var(--armory-text-dim)' }}>支持 ZIP / WOTMOD / RAR 格式</p>
             </div>
           )}
         </div>
@@ -141,16 +141,16 @@ export function ModInstall() {
                   gap: 12,
                   padding: '12px 16px',
                   borderRadius: 8,
-                  border: '1px solid rgba(128,128,128,0.15)',
+                  border: '1px solid var(--armory-border)',
                   cursor: 'pointer',
-                  transition: 'all 0.2s',
+                  transition: 'background-color 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s',
                 }}
                 className="hoverable-card"
               >
                 <span style={{ fontSize: 24 }}>{pkg.icon}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <Text strong style={{ fontSize: 14 }}>{pkg.name}</Text>
-                  <div style={{ fontSize: 12, color: 'rgba(128,128,128,0.65)' }}>{pkg.desc}</div>
+                  <div style={{ fontSize: 12, color: 'var(--armory-text-dim)' }}>{pkg.desc}</div>
                 </div>
                 <Tag>v{pkg.version}</Tag>
                 <Button size="small" icon={<DownloadOutlined />}>

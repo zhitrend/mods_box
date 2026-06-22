@@ -127,7 +127,7 @@ export function ModList() {
         </Row>
       )}
 
-      <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid rgba(128,128,128,0.15)', fontSize: 13, color: 'rgba(128,128,128,0.65)' }}>
+      <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--armory-border)', fontSize: 13, color: 'var(--armory-text-dim)' }}>
         共 {mods.length} 个模组
         {filteredMods.length !== mods.length && ` (筛选后 ${filteredMods.length} 个)`}
       </div>

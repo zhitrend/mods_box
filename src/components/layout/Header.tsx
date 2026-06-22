@@ -1,9 +1,9 @@
 import { useModStore } from '../../stores/modStore';
-import { Input, Button } from 'antd';
-import { SearchOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons';
+import { Input } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 
 export function Header() {
-  const { searchQuery, setSearchQuery, darkMode, toggleDarkMode } = useModStore();
+  const { searchQuery, setSearchQuery } = useModStore();
 
   return (
     <div
@@ -20,11 +20,14 @@ export function Header() {
       <div style={{ flex: 1, maxWidth: 420 }}>
         <Input
           prefix={<SearchOutlined style={{ color: 'var(--armory-text-dim)' }} />}
-          placeholder="搜索模组..."
+          placeholder="搜索模组…"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           allowClear
           variant="borderless"
+          name="search"
+          autoComplete="off"
+          spellCheck={false}
           style={{
             background: 'var(--armory-bg)',
             borderRadius: 6,
@@ -32,18 +35,6 @@ export function Header() {
           }}
         />
       </div>
-
-      <Button
-        type="text"
-        icon={
-          darkMode
-            ? <SunOutlined style={{ color: 'var(--armory-gold)' }} />
-            : <MoonOutlined style={{ color: 'var(--armory-text-secondary)' }} />
-        }
-        onClick={toggleDarkMode}
-        aria-label="切换主题"
-        style={{ fontSize: 16 }}
-      />
     </div>
   );
 }

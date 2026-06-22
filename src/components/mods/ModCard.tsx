@@ -60,13 +60,13 @@ export function ModCard({ mod, onToggle, onUninstall, onDetail }: ModCardProps) 
               <WarningOutlined style={{ color: '#ff4d4f', fontSize: 14 }} />
             )}
           </div>
-          <div style={{ fontSize: 12, color: 'rgba(128,128,128,0.75)', marginBottom: 8 }}>
+          <div style={{ fontSize: 12, color: 'var(--armory-text-secondary)', marginBottom: 8 }}>
             v{mod.version} · {mod.author}
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
             <Tag color={statusColorMap[mod.status] || 'default'}>{STATUS_LABELS[mod.status]}</Tag>
             <Tag color={categoryColorMap[mod.category] || 'default'}>{CATEGORY_LABELS[mod.category]}</Tag>
-            <span style={{ fontSize: 12, color: 'rgba(128,128,128,0.65)' }}>{formatFileSize(mod.file_size)}</span>
+            <span style={{ fontSize: 12, color: 'var(--armory-text-dim)' }}>{formatFileSize(mod.file_size)}</span>
           </div>
         </div>
 
@@ -86,7 +86,7 @@ export function ModCard({ mod, onToggle, onUninstall, onDetail }: ModCardProps) 
       </div>
 
       {mod.conflicts.length > 0 && (
-        <div style={{ marginTop: 8, padding: 6, background: 'rgba(255,77,79,0.08)', borderRadius: 4, fontSize: 12, color: '#ff4d4f' }}>
+        <div style={{ marginTop: 8, padding: 6, background: 'rgba(255,77,79,0.08)', borderRadius: 4, fontSize: 12, color: 'var(--armory-error)' }}>
           与 {mod.conflicts.length} 个文件存在冲突
         </div>
       )}

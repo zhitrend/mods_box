@@ -102,7 +102,7 @@ body::after {
   color: var(--armory-text-secondary) !important;
   border-radius: 6px !important;
   margin: 2px 8px !important;
-  transition: all 0.2s ease !important;
+  transition: color 0.2s ease, background-color 0.2s ease !important;
 }
 
 .ant-menu-item:hover {
@@ -131,7 +131,7 @@ body::after {
   background: var(--armory-elevated) !important;
   border: 1px solid var(--armory-border) !important;
   border-radius: 8px !important;
-  transition: all 0.25s ease !important;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
 }
 
 .ant-card:hover {
@@ -153,7 +153,7 @@ body::after {
   font-weight: 600 !important;
   letter-spacing: 0.04em;
   border-radius: 6px !important;
-  transition: all 0.2s ease !important;
+  transition: color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease !important;
 }
 
 .ant-btn-primary {
@@ -194,7 +194,7 @@ body::after {
   color: var(--armory-text) !important;
   border-radius: 6px !important;
   font-family: 'Outfit', sans-serif !important;
-  transition: all 0.2s ease !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 
 .ant-input:hover,
@@ -255,23 +255,6 @@ body::after {
 
 .ant-empty-description {
   color: var(--armory-text-secondary) !important;
-}
-
-.ant-upload-drag {
-  background: var(--armory-surface) !important;
-  border: 2px dashed var(--armory-border) !important;
-  border-radius: 8px !important;
-  transition: all 0.25s ease !important;
-}
-
-.ant-upload-drag:hover {
-  border-color: var(--armory-gold-dim) !important;
-  background: var(--armory-gold-glow) !important;
-}
-
-.ant-upload-drag-active {
-  border-color: var(--armory-gold) !important;
-  background: var(--armory-gold-glow) !important;
 }
 
 .ant-descriptions-bordered .ant-descriptions-view {
@@ -357,7 +340,7 @@ body::after {
 
 /* Hoverable card effect */
 .hoverable-card {
-  transition: all 0.25s ease;
+  transition: background-color 0.25s ease, border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
   cursor: pointer;
 }
 .hoverable-card:hover {

@@ -62,7 +62,7 @@ export function Sidebar() {
             padding: 6,
             borderRadius: 6,
             color: 'var(--armory-gold)',
-            transition: 'all 0.2s',
+            transition: 'color 0.2s, background-color 0.2s',
             flexShrink: 0,
             background: 'none',
             border: 'none',
@@ -131,7 +131,7 @@ export function Sidebar() {
                 width: sidebarCollapsed ? 'auto' : 'calc(100% - 16px)',
                 textAlign: 'left',
                 position: 'relative',
-                transition: 'all 0.2s ease',
+                transition: 'color 0.2s ease, background-color 0.2s ease',
               }}
               className={isActive ? undefined : 'nav-item'}
             >

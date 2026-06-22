@@ -93,7 +93,7 @@ export function Settings() {
           </label>
         </div>
 
-        <div style={{ marginBottom: 16 }}>
+        <label style={{ display: 'block', marginBottom: 16 }}>
           <Text strong style={{ display: 'block', marginBottom: 4 }}>区服</Text>
           <Select
             value={region}
@@ -101,10 +101,10 @@ export function Settings() {
             options={Object.entries(REGION_LABELS).map(([value, label]) => ({ value, label }))}
             style={{ width: '100%' }}
           />
-        </div>
+        </label>
 
         {gameConfig && (
-          <div style={{ padding: 12, background: 'rgba(128,128,128,0.04)', borderRadius: 6, marginBottom: 16 }}>
+            <div style={{ padding: 12, background: 'var(--armory-gold-glow)', borderRadius: 6, marginBottom: 16 }}>
             <div style={{ marginBottom: 4 }}>
               <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 6 }} />
               <Text>游戏版本: v{gameConfig.version}</Text>
@@ -142,14 +142,14 @@ export function Settings() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div>
             <Text strong>开机自启</Text>
-            <div style={{ fontSize: 12, color: 'rgba(128,128,128,0.65)' }}>开机时自动启动并常驻托盘</div>
+            <div style={{ fontSize: 12, color: 'var(--armory-text-dim)' }}>开机时自动启动并常驻托盘</div>
           </div>
           <Tag color="default" style={{ fontSize: 11 }}>即将推出</Tag>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <Text strong>文件关联</Text>
-            <div style={{ fontSize: 12, color: 'rgba(128,128,128,0.65)' }}>关联 .wotmod 文件格式</div>
+            <div style={{ fontSize: 12, color: 'var(--armory-text-dim)' }}>关联 .wotmod 文件格式</div>
           </div>
           <Tag color="default" style={{ fontSize: 11 }}>即将推出</Tag>
         </div>

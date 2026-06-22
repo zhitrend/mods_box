@@ -29,12 +29,11 @@ export function About() {
         </Paragraph>
 
         <Title level={5}>功能特性</Title>
-        <ul style={{ color: 'rgba(128,128,128,0.75)', lineHeight: 2 }}>
+        <ul style={{ color: 'var(--armory-text-secondary)', lineHeight: 2 }}>
           <li>模组安装、启用/禁用、卸载</li>
           <li>冲突检测与解决</li>
           <li>游戏路径自动检测</li>
           <li>备份与恢复</li>
-          <li>亮色/暗色主题</li>
         </ul>
       </Card>
     </div>
