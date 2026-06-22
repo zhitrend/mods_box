@@ -1,0 +1,47 @@
+[package]
+name = "wot-mods-manager"
+version = "0.1.0"
+description = "WoT Mods Manager - 坦克世界模组管理器"
+authors = ["you"]
+license = "MIT"
+repository = ""
+edition = "2021"
+rust-version = "1.77.2"
+
+[lib]
+name = "app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.6.3", features = [] }
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+log = "0.4"
+tauri = { version = "2.11.3", features = [] }
+tauri-plugin-log = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-shell = "2"
+zip = { version = "2.2", default-features = false, features = ["deflate", "aes-crypto"] }
+walkdir = "2"
+sha2 = "0.10"
+hex = "0.4"
+anyhow = "1"
+thiserror = "2"
+tokio = { version = "1", features = ["full"] }
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4"] }
+winreg = "0.52"
+notify = "7"
+once_cell = "1"
+dirs-next = "2"
+reqwest = { version = "0.12", features = ["json"] }
+aes = "0.8"
+cbc = "0.1"
+base64 = "0.22"
+md-5 = "0.10"
+rsa = { version = "0.9", features = ["pem"] }
+openssl = { version = "0.10", features = ["vendored"] }
+rand = "0.8"
