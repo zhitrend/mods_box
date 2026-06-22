@@ -1,17 +1,18 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { Layout as AntLayout } from 'antd';
 
 export function Layout() {
   return (
-    <div className="flex h-screen bg-background text-foreground">
+    <AntLayout style={{ height: '100vh', background: 'var(--color-background)' }}>
       <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <AntLayout>
         <Header />
-        <main className="flex-1 overflow-auto p-6">
+        <AntLayout.Content style={{ overflow: 'auto', padding: 24 }}>
           <Outlet />
-        </main>
-      </div>
-    </div>
+        </AntLayout.Content>
+      </AntLayout>
+    </AntLayout>
   );
 }

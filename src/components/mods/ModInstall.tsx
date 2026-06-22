@@ -2,32 +2,32 @@ import { useState, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import { useModStore } from '../../stores/modStore';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, Button, Badge } from '../ui';
+import { Card, Button, Typography, Tag, Upload, message, Row, Col } from 'antd';
+import { InboxOutlined, DownloadOutlined, LoadingOutlined } from '@ant-design/icons';
 import { ModInfo } from '../../types';
-import { Upload, FileArchive, Package, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+
+const { Title, Text } = Typography;
+const { Dragger } = Upload;
 
 export function ModInstall() {
   const { addMod, gameConfig } = useModStore();
   const [installing, setInstalling] = useState(false);
-  const [installResult, setInstallResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [dragOver, setDragOver] = useState(false);
 
   const handleInstall = useCallback(async (filePath: string) => {
     if (!gameConfig) {
-      setInstallResult({ success: false, message: '请先在设置中配置游戏路径' });
+      message.error('请先在设置中配置游戏路径');
       return;
     }
     setInstalling(true);
-    setInstallResult(null);
     try {
       const mod = await invoke<ModInfo>('install_mod', {
         filePath,
         strategy: 'smartMerge',
       });
       addMod(mod);
-      setInstallResult({ success: true, message: `模组 "${mod.name}" 安装成功` });
+      message.success(`模组 "${mod.name}" 安装成功`);
     } catch (e) {
-      setInstallResult({ success: false, message: `安装失败: ${e}` });
+      message.error(`安装失败: ${e}`);
     } finally {
       setInstalling(false);
     }
@@ -50,113 +50,76 @@ export function ModInstall() {
     }
   };
 
-  const handleDrop = useCallback(async (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const files = Array.from(e.dataTransfer.files);
-    for (const file of files) {
-      if (file.name.endsWith('.zip') || file.name.endsWith('.wotmod')) {
-        const filePath = (file as any).path || file.name;
-        await handleInstall(filePath);
-      }
-    }
-  }, [handleInstall]);
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(true);
-  };
-
-  const handleDragLeave = () => setDragOver(false);
-
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>安装模组</CardTitle>
-          <CardDescription>
-            支持 .zip 和 .wotmod 格式的模组文件
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors cursor-pointer ${
-              dragOver
-                ? 'border-primary bg-primary/5'
-                : 'border-muted-foreground/25 hover:border-muted-foreground/50'
-            }`}
-            onClick={handleFileSelect}
-          >
-            {installing ? (
-              <div className="flex flex-col items-center gap-2">
-                <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">正在安装...</p>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center gap-2">
-                <Upload className="h-10 w-10 text-muted-foreground" />
-                <p className="font-medium">
-                  拖拽文件到此处，或点击选择文件
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  支持 ZIP / WOTMOD 格式
-                </p>
-              </div>
-            )}
-          </div>
+    <div>
+      <Card style={{ marginBottom: 24 }}>
+        <Title level={5}>安装模组</Title>
+        <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+          支持 .zip 和 .wotmod 格式的模组文件
+        </Text>
 
-          {installResult && (
-            <div
-              className={`flex items-center gap-2 p-3 rounded-md text-sm ${
-                installResult.success
-                  ? 'bg-green-500/10 text-green-600'
-                  : 'bg-destructive/10 text-destructive'
-              }`}
-            >
-              {installResult.success ? (
-                <CheckCircle className="h-4 w-4" />
-              ) : (
-                <AlertCircle className="h-4 w-4" />
-              )}
-              {installResult.message}
+        <Dragger
+          disabled={installing}
+          showUploadList={false}
+          beforeUpload={(file) => {
+            const filePath = (file as any).path || file.name;
+            handleInstall(filePath);
+            return false;
+          }}
+          style={{ marginBottom: 16 }}
+        >
+          {installing ? (
+            <div>
+              <LoadingOutlined style={{ fontSize: 40, color: '#1677ff' }} />
+              <p style={{ marginTop: 8, color: 'rgba(128,128,128,0.75)' }}>正在安装...</p>
+            </div>
+          ) : (
+            <div>
+              <InboxOutlined style={{ fontSize: 40, color: 'rgba(128,128,128,0.45)' }} />
+              <p style={{ marginTop: 8, fontWeight: 500 }}>拖拽文件到此处，或点击选择文件</p>
+              <p style={{ color: 'rgba(128,128,128,0.65)' }}>支持 ZIP / WOTMOD 格式</p>
             </div>
           )}
-        </CardContent>
+        </Dragger>
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>内置模组包</CardTitle>
-          <CardDescription>一键安装预置的常用模组</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 md:grid-cols-2">
-            {[
-              { name: 'XVM', desc: '综合模组包，战绩统计', icon: '⭐', version: '8.8.0' },
-              { name: '瞄准辅助', desc: '自动瞄准、弱点标注', icon: '🎯', version: '1.0.0' },
-              { name: '小地图增强', desc: '扩大地图、显示视野圈', icon: '🗺️', version: '1.2.0' },
-              { name: '伤害面板', desc: '详细伤害统计与日志', icon: '📊', version: '2.0.1' },
-            ].map((pkg) => (
+        <Title level={5}>内置模组包</Title>
+        <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>一键安装预置的常用模组</Text>
+        <Row gutter={[12, 12]}>
+          {[
+            { name: 'XVM', desc: '综合模组包，战绩统计', icon: '⭐', version: '8.8.0' },
+            { name: '瞄准辅助', desc: '自动瞄准、弱点标注', icon: '🎯', version: '1.0.0' },
+            { name: '小地图增强', desc: '扩大地图、显示视野圈', icon: '🗺️', version: '1.2.0' },
+            { name: '伤害面板', desc: '详细伤害统计与日志', icon: '📊', version: '2.0.1' },
+          ].map((pkg) => (
+            <Col key={pkg.name} xs={24} sm={12}>
               <div
-                key={pkg.name}
-                className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors cursor-pointer"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '12px 16px',
+                  borderRadius: 8,
+                  border: '1px solid rgba(128,128,128,0.15)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+                className="hoverable-card"
               >
-                <span className="text-2xl">{pkg.icon}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm">{pkg.name}</p>
-                  <p className="text-xs text-muted-foreground">{pkg.desc}</p>
+                <span style={{ fontSize: 24 }}>{pkg.icon}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <Text strong style={{ fontSize: 14 }}>{pkg.name}</Text>
+                  <div style={{ fontSize: 12, color: 'rgba(128,128,128,0.65)' }}>{pkg.desc}</div>
                 </div>
-                <Badge variant="outline">v{pkg.version}</Badge>
-                <Button size="sm" variant="secondary">
-                  <Package className="h-4 w-4 mr-1" /> 安装
+                <Tag>v{pkg.version}</Tag>
+                <Button size="small" icon={<DownloadOutlined />}>
+                  安装
                 </Button>
               </div>
-            ))}
-          </div>
-        </CardContent>
+            </Col>
+          ))}
+        </Row>
       </Card>
     </div>
   );

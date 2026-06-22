@@ -1,7 +1,7 @@
-import { ModInfo, CATEGORY_LABELS } from '../../types';
-import { Card, CardContent, Badge, Switch, Button } from '../ui';
+import { ModInfo, CATEGORY_LABELS, STATUS_LABELS } from '../../types';
+import { Card, Tag, Switch, Button, Tooltip } from 'antd';
+import { DeleteOutlined, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { formatFileSize } from '../../lib/utils';
-import { Trash2, Info, AlertTriangle } from 'lucide-react';
 
 interface ModCardProps {
   mod: ModInfo;
@@ -10,75 +10,75 @@ interface ModCardProps {
   onDetail: (mod: ModInfo) => void;
 }
 
+const statusColorMap: Record<string, string> = {
+  Enabled: 'green',
+  Disabled: 'default',
+  Conflict: 'red',
+  Outdated: 'orange',
+  Incompatible: 'red',
+  Error: 'red',
+};
+
+const categoryColorMap: Record<string, string> = {
+  Aiming: 'blue',
+  Crosshair: 'purple',
+  DamagePanel: 'cyan',
+  Garage: 'geekblue',
+  Minimap: 'green',
+  Sound: 'magenta',
+  Visual: 'orange',
+  Utility: 'lime',
+  XVM: 'gold',
+  Other: 'default',
+};
+
 export function ModCard({ mod, onToggle, onUninstall, onDetail }: ModCardProps) {
-  const statusColors: Record<string, 'success' | 'warning' | 'destructive' | 'secondary' | 'default'> = {
-    Enabled: 'success',
-    Disabled: 'secondary',
-    Conflict: 'destructive',
-    Outdated: 'warning',
-    Incompatible: 'destructive',
-    Error: 'destructive',
-  };
-
   return (
-    <Card className="group hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="font-medium truncate">{mod.name}</h3>
-              {mod.status === 'Conflict' && (
-                <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              v{mod.version} · {mod.author}
-            </p>
-            <div className="flex items-center gap-2 mt-2">
-              <Badge variant={statusColors[mod.status] || 'default'}>
-                {mod.status === 'Enabled' ? '已启用' :
-                 mod.status === 'Disabled' ? '已禁用' :
-                 mod.status === 'Conflict' ? '冲突' :
-                 mod.status === 'Outdated' ? '过时' : mod.status}
-              </Badge>
-              <Badge variant="outline">{CATEGORY_LABELS[mod.category]}</Badge>
-              <span className="text-xs text-muted-foreground">
-                {formatFileSize(mod.file_size)}
-              </span>
-            </div>
+    <Card
+      size="small"
+      hoverable
+      style={{ position: 'relative' }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+            <span style={{ fontWeight: 500, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {mod.name}
+            </span>
+            {mod.status === 'Conflict' && (
+              <WarningOutlined style={{ color: '#ff4d4f', fontSize: 14 }} />
+            )}
           </div>
-
-          <div className="flex items-center gap-2 ml-4">
-            <Switch
-              checked={mod.enabled}
-              onCheckedChange={() => onToggle(mod.id)}
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDetail(mod)}
-              title="详情"
-            >
-              <Info className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onUninstall(mod.id)}
-              title="卸载"
-              className="text-destructive hover:text-destructive"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+          <div style={{ fontSize: 12, color: 'rgba(128,128,128,0.75)', marginBottom: 8 }}>
+            v{mod.version} · {mod.author}
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
+            <Tag color={statusColorMap[mod.status] || 'default'}>{STATUS_LABELS[mod.status]}</Tag>
+            <Tag color={categoryColorMap[mod.category] || 'default'}>{CATEGORY_LABELS[mod.category]}</Tag>
+            <span style={{ fontSize: 12, color: 'rgba(128,128,128,0.65)' }}>{formatFileSize(mod.file_size)}</span>
           </div>
         </div>
 
-        {mod.conflicts.length > 0 && (
-          <div className="mt-2 p-2 bg-destructive/10 rounded text-xs text-destructive">
-            与 {mod.conflicts.length} 个文件存在冲突
-          </div>
-        )}
-      </CardContent>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+          <Switch
+            checked={mod.enabled}
+            onChange={() => onToggle(mod.id)}
+            size="small"
+          />
+          <Tooltip title="详情">
+            <Button type="text" size="small" icon={<InfoCircleOutlined />} onClick={() => onDetail(mod)} />
+          </Tooltip>
+          <Tooltip title="卸载">
+            <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => onUninstall(mod.id)} />
+          </Tooltip>
+        </div>
+      </div>
+
+      {mod.conflicts.length > 0 && (
+        <div style={{ marginTop: 8, padding: 6, background: 'rgba(255,77,79,0.08)', borderRadius: 4, fontSize: 12, color: '#ff4d4f' }}>
+          与 {mod.conflicts.length} 个文件存在冲突
+        </div>
+      )}
     </Card>
   );
 }

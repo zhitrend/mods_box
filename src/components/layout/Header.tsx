@@ -1,25 +1,49 @@
 import { useModStore } from '../../stores/modStore';
-import { Input, Button } from '../ui';
-import { Search, Moon, Sun } from 'lucide-react';
+import { Input, Button } from 'antd';
+import { SearchOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons';
 
 export function Header() {
   const { searchQuery, setSearchQuery, darkMode, toggleDarkMode } = useModStore();
 
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-card px-6">
-      <div className="relative flex-1 max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+    <div
+      style={{
+        height: 60,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        padding: '0 24px',
+        borderBottom: '1px solid var(--armory-border)',
+        background: 'var(--armory-surface)',
+      }}
+    >
+      <div style={{ flex: 1, maxWidth: 420 }}>
         <Input
+          prefix={<SearchOutlined style={{ color: 'var(--armory-text-dim)' }} />}
           placeholder="搜索模组..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
+          allowClear
+          variant="borderless"
+          style={{
+            background: 'var(--armory-bg)',
+            borderRadius: 6,
+            height: 36,
+          }}
         />
       </div>
 
-      <Button variant="ghost" size="icon" onClick={toggleDarkMode} title="切换主题">
-        {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-      </Button>
-    </header>
+      <Button
+        type="text"
+        icon={
+          darkMode
+            ? <SunOutlined style={{ color: 'var(--armory-gold)' }} />
+            : <MoonOutlined style={{ color: 'var(--armory-text-secondary)' }} />
+        }
+        onClick={toggleDarkMode}
+        title="切换主题"
+        style={{ fontSize: 16 }}
+      />
+    </div>
   );
 }

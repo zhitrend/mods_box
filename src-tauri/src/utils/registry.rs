@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use walkdir::WalkDir;
 
 pub fn detect_wot_path() -> Option<PathBuf> {
     #[cfg(target_os = "windows")]
@@ -17,19 +18,84 @@ pub fn detect_wot_path() -> Option<PathBuf> {
         }
     }
 
-    let common_paths = vec![
+    let common_paths = [
+        "C:\\Games\\WorldOfTanks",
+        "D:\\Games\\WorldOfTanks",
+        "E:\\Games\\WorldOfTanks",
+        "F:\\Games\\WorldOfTanks",
+        "G:\\Games\\WorldOfTanks",
+        "C:\\Program Files\\WorldOfTanks",
+        "C:\\Program Files (x86)\\WorldOfTanks",
+        "D:\\Program Files\\WorldOfTanks",
+        "D:\\Program Files (x86)\\WorldOfTanks",
+        "C:\\Wargaming.net\\WorldOfTanks",
+        "D:\\Wargaming.net\\WorldOfTanks",
+        "E:\\Wargaming.net\\WorldOfTanks",
         "C:\\Games\\World_of_Tanks",
+        "D:\\Games\\World_of_Tanks",
         "C:\\Program Files\\World_of_Tanks",
         "C:\\Program Files (x86)\\World_of_Tanks",
-        "C:\\Program Files (x86)\\Wargaming.net\\World_of_Tanks",
-        "D:\\Games\\World_of_Tanks",
+        "C:\\Games\\World_of_Tanks_CN",
+        "D:\\Games\\World_of_Tanks_CN",
+        "C:\\Program Files\\World_of_Tanks_CN",
+        "C:\\Program Files (x86)\\World_of_Tanks_CN",
     ];
-    for path_str in common_paths {
+    for path_str in &common_paths {
         let p = PathBuf::from(path_str);
-        if p.join("WorldOfTanks.exe").exists() || p.join("wotlauncher.exe").exists() {
+        if p.join("WorldOfTanks.exe").exists() || p.join("WoTLauncher.exe").exists() {
             return Some(p);
         }
     }
+
+    // Deep scan: search Games/ and Wargaming.net/ directories on all drives
+    let candidates = ["WorldOfTanks.exe", "WoTLauncher.exe", "tanki.exe"];
+    let scan_roots = ["Games", "Wargaming.net"];
+
+    for letter in b'C'..=b'Z' {
+        let drive = format!("{}:\\", letter as char);
+        let drive_path = std::path::Path::new(&drive);
+        if !drive_path.exists() {
+            continue;
+        }
+        for root in &scan_roots {
+            let dir = drive_path.join(root);
+            if !dir.exists() || !dir.is_dir() {
+                continue;
+            }
+            for entry in WalkDir::new(&dir).max_depth(4).into_iter().filter_map(|e| e.ok()) {
+                if !entry.file_type().is_file() {
+                    continue;
+                }
+                if let Some(name) = entry.file_name().to_str() {
+                    if candidates.iter().any(|c| name.eq_ignore_ascii_case(c)) {
+                        if let Some(parent) = entry.path().parent() {
+                            return Some(parent.to_path_buf());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Finally scan user home directory
+    if let Ok(home) = std::env::var("USERPROFILE") {
+        let user_games = std::path::Path::new(&home).join("Games");
+        if user_games.exists() {
+            for entry in WalkDir::new(&user_games).max_depth(3).into_iter().filter_map(|e| e.ok()) {
+                if !entry.file_type().is_file() {
+                    continue;
+                }
+                if let Some(name) = entry.file_name().to_str() {
+                    if candidates.iter().any(|c| name.eq_ignore_ascii_case(c)) {
+                        if let Some(parent) = entry.path().parent() {
+                            return Some(parent.to_path_buf());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     None
 }
 

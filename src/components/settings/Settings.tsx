@@ -1,9 +1,16 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useModStore } from '../../stores/modStore';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, Button, Input, Select, Badge } from '../ui';
+import { Card, Button, Input, Select, Typography, Alert, Space, Tag } from 'antd';
+import {
+  FolderOpenOutlined,
+  PlayCircleOutlined,
+  ScanOutlined,
+  CheckCircleOutlined,
+} from '@ant-design/icons';
 import { GameConfig, REGION_LABELS } from '../../types';
-import { FolderOpen, Play, ScanLine, CheckCircle, AlertCircle } from 'lucide-react';
+
+const { Title, Text } = Typography;
 
 export function Settings() {
   const { gameConfig, setGameConfig } = useModStore();
@@ -58,109 +65,89 @@ export function Settings() {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <Card>
-        <CardHeader>
-          <CardTitle>游戏设置</CardTitle>
-          <CardDescription>配置坦克世界游戏路径和区服</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Button onClick={handleDetect} disabled={detecting} variant="secondary">
-              <ScanLine className="h-4 w-4 mr-2" />
-              {detecting ? '检测中...' : '自动检测'}
-            </Button>
-            <span className="text-xs text-muted-foreground">
-              扫描注册表和常见安装目录
-            </span>
-          </div>
+    <div style={{ maxWidth: 560 }}>
+      <Card style={{ marginBottom: 24 }}>
+        <Title level={5}>游戏设置</Title>
+        <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+          配置坦克世界游戏路径和区服
+        </Text>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">游戏安装路径</label>
-            <div className="flex gap-2">
-              <Input
-                value={gamePath}
-                onChange={(e) => setGamePath(e.target.value)}
-                placeholder="C:\\Games\\World_of_Tanks"
-                className="flex-1"
-              />
+        <div style={{ marginBottom: 16 }}>
+          <Button onClick={handleDetect} disabled={detecting} loading={detecting} icon={<ScanOutlined />}>
+            自动检测
+          </Button>
+          <Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>扫描注册表和常见安装目录</Text>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <Text strong style={{ display: 'block', marginBottom: 4 }}>游戏安装路径</Text>
+          <Input
+            value={gamePath}
+            onChange={(e) => setGamePath(e.target.value)}
+            placeholder="C:\\Games\\World_of_Tanks"
+          />
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <Text strong style={{ display: 'block', marginBottom: 4 }}>区服</Text>
+          <Select
+            value={region}
+            onChange={setRegion}
+            options={Object.entries(REGION_LABELS).map(([value, label]) => ({ value, label }))}
+            style={{ width: '100%' }}
+          />
+        </div>
+
+        {gameConfig && (
+          <div style={{ padding: 12, background: 'rgba(128,128,128,0.04)', borderRadius: 6, marginBottom: 16 }}>
+            <div style={{ marginBottom: 4 }}>
+              <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 6 }} />
+              <Text>游戏版本: v{gameConfig.version}</Text>
+            </div>
+            <div>
+              <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 6 }} />
+              <Text>模组目录: {gameConfig.res_mods_dir}</Text>
             </div>
           </div>
+        )}
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">区服</label>
-            <Select
-              options={Object.entries(REGION_LABELS).map(([value, label]) => ({
-                value,
-                label,
-              }))}
-              value={region}
-              onChange={(e) => setRegion(e.target.value)}
-            />
-          </div>
+        {status && (
+          <Alert
+            message={status.message}
+            type={status.type}
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+        )}
 
-          {gameConfig && (
-            <div className="p-3 bg-muted/50 rounded-md space-y-1 text-sm">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>游戏版本: v{gameConfig.version}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>模组目录: {gameConfig.res_mods_dir}</span>
-              </div>
-            </div>
-          )}
-
-          {status && (
-            <div
-              className={`flex items-center gap-2 p-3 rounded-md text-sm ${
-                status.type === 'success'
-                  ? 'bg-green-500/10 text-green-600'
-                  : 'bg-destructive/10 text-destructive'
-              }`}
-            >
-              {status.type === 'success' ? (
-                <CheckCircle className="h-4 w-4" />
-              ) : (
-                <AlertCircle className="h-4 w-4" />
-              )}
-              {status.message}
-            </div>
-          )}
-
-          <div className="flex gap-2">
-            <Button onClick={handleSave}>
-              <FolderOpen className="h-4 w-4 mr-2" /> 保存配置
-            </Button>
-            <Button variant="secondary" onClick={handleLaunch}>
-              <Play className="h-4 w-4 mr-2" /> 启动游戏
-            </Button>
-          </div>
-        </CardContent>
+        <Space>
+          <Button type="primary" icon={<FolderOpenOutlined />} onClick={handleSave}>
+            保存配置
+          </Button>
+          <Button icon={<PlayCircleOutlined />} onClick={handleLaunch}>
+            启动游戏
+          </Button>
+        </Space>
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>通用设置</CardTitle>
-          <CardDescription>应用通用配置</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">开机自启</p>
-              <p className="text-xs text-muted-foreground">开机时自动启动并常驻托盘</p>
-            </div>
-            <Badge variant="secondary" className="text-xs">即将推出</Badge>
+        <Title level={5}>通用设置</Title>
+        <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>应用通用配置</Text>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div>
+            <Text strong>开机自启</Text>
+            <div style={{ fontSize: 12, color: 'rgba(128,128,128,0.65)' }}>开机时自动启动并常驻托盘</div>
           </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">文件关联</p>
-              <p className="text-xs text-muted-foreground">关联 .wotmod 文件格式</p>
-            </div>
-            <Badge variant="secondary" className="text-xs">即将推出</Badge>
+          <Tag color="default" style={{ fontSize: 11 }}>即将推出</Tag>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <Text strong>文件关联</Text>
+            <div style={{ fontSize: 12, color: 'rgba(128,128,128,0.65)' }}>关联 .wotmod 文件格式</div>
           </div>
-        </CardContent>
+          <Tag color="default" style={{ fontSize: 11 }}>即将推出</Tag>
+        </div>
       </Card>
     </div>
   );

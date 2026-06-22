@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { Key, Shield, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Input, Button, Alert, Spin, Tag } from 'antd';
+import {
+  SafetyCertificateOutlined,
+  KeyOutlined,
+  CheckCircleOutlined,
+  LoadingOutlined,
+} from '@ant-design/icons';
 import { useModStore } from '../../stores/modStore';
-import { Button, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, Input, Badge } from '../ui';
 
 interface KamiInfo {
   kami: string;
@@ -16,7 +21,7 @@ interface LoginPageProps {
 }
 
 export function LoginPage({ onBound }: LoginPageProps) {
-  const { setIsBound, setKamiInfo, setVipStatus } = useModStore();
+  const { setIsBound, setKamiInfo } = useModStore();
   const [kami, setKami] = useState('');
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
@@ -36,7 +41,7 @@ export function LoginPage({ onBound }: LoginPageProps) {
           }
         }
       } catch {
-        // not bound, show login form
+        // not bound
       } finally {
         setChecking(false);
       }
@@ -69,77 +74,263 @@ export function LoginPage({ onBound }: LoginPageProps) {
 
   if (checking) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div
+        style={{
+          display: 'flex',
+          height: '100vh',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--armory-bg)',
+        }}
+      >
+        <Spin indicator={<LoadingOutlined style={{ fontSize: 28, color: 'var(--armory-gold)' }} />} />
       </div>
     );
   }
 
   if (boundInfo) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <Card className="w-96">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
-              <CheckCircle className="h-8 w-8 text-green-500" />
-            </div>
-            <CardTitle>已绑定</CardTitle>
-            <CardDescription>正在进入应用...</CardDescription>
-          </CardHeader>
+      <div
+        style={{
+          display: 'flex',
+          height: '100vh',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--armory-bg)',
+        }}
+      >
+        <div
+          style={{
+            background: 'var(--armory-elevated)',
+            border: '1px solid var(--armory-border)',
+            borderRadius: 12,
+            padding: 48,
+            textAlign: 'center',
+            maxWidth: 400,
+            width: '100%',
+            margin: '0 16px',
+          }}
+        >
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              background: 'rgba(82, 196, 26, 0.12)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+            }}
+          >
+            <CheckCircleOutlined style={{ fontSize: 32, color: '#52c41a' }} />
+          </div>
+          <div
+            style={{
+              fontFamily: "'Rajdhani', sans-serif",
+              fontWeight: 700,
+              fontSize: 22,
+              letterSpacing: '0.04em',
+              marginBottom: 8,
+            }}
+          >
+            已绑定
+          </div>
+          <div style={{ color: 'var(--armory-text-secondary)', fontSize: 14, lineHeight: 1.6 }}>
+            正在进入应用...
+          </div>
           {boundInfo.expire_time && (
-            <CardContent className="text-center text-sm text-muted-foreground">
+            <div
+              style={{
+                marginTop: 12,
+                fontSize: 13,
+                color: 'var(--armory-text-dim)',
+              }}
+            >
               VIP 有效期至: {boundInfo.expire_time}
-            </CardContent>
+            </div>
           )}
-        </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen items-center justify-center bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-            <Shield className="h-8 w-8 text-primary" />
+    <div
+      style={{
+        display: 'flex',
+        height: '100vh',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--armory-bg)',
+        position: 'relative',
+      }}
+    >
+      {/* Decorative corner elements */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 40,
+          left: 40,
+          width: 60,
+          height: 60,
+          borderTop: '2px solid var(--armory-gold-dim)',
+          borderLeft: '2px solid var(--armory-gold-dim)',
+          opacity: 0.3,
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          top: 40,
+          right: 40,
+          width: 60,
+          height: 60,
+          borderTop: '2px solid var(--armory-gold-dim)',
+          borderRight: '2px solid var(--armory-gold-dim)',
+          opacity: 0.3,
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 40,
+          left: 40,
+          width: 60,
+          height: 60,
+          borderBottom: '2px solid var(--armory-gold-dim)',
+          borderLeft: '2px solid var(--armory-gold-dim)',
+          opacity: 0.3,
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 40,
+          right: 40,
+          width: 60,
+          height: 60,
+          borderBottom: '2px solid var(--armory-gold-dim)',
+          borderRight: '2px solid var(--armory-gold-dim)',
+          opacity: 0.3,
+        }}
+      />
+
+      <div
+        style={{
+          background: 'var(--armory-elevated)',
+          border: '1px solid var(--armory-border)',
+          borderRadius: 12,
+          padding: 48,
+          maxWidth: 420,
+          width: '100%',
+          margin: '0 16px',
+          position: 'relative',
+        }}
+      >
+        {/* Top bar */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: '20%',
+            right: '20%',
+            height: 2,
+            background: 'linear-gradient(90deg, transparent, var(--armory-gold), transparent)',
+            borderRadius: '0 0 2px 2px',
+          }}
+        />
+
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: '50%',
+              background: 'var(--armory-gold-glow)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px',
+            }}
+          >
+            <SafetyCertificateOutlined style={{ fontSize: 36, color: 'var(--armory-gold)' }} />
           </div>
-          <CardTitle className="text-2xl">WoT Mods Manager</CardTitle>
-          <CardDescription>请输入卡密以绑定设备</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="relative">
-            <Key className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <div
+            style={{
+              fontFamily: "'Rajdhani', sans-serif",
+              fontWeight: 700,
+              fontSize: 26,
+              letterSpacing: '0.06em',
+              color: 'var(--armory-gold)',
+              marginBottom: 4,
+            }}
+          >
+            WoT MODS MANAGER
+          </div>
+          <div style={{ color: 'var(--armory-text-secondary)', fontSize: 14 }}>
+            军械库 · 安全终端
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ position: 'relative' }}>
             <Input
+              prefix={<KeyOutlined style={{ color: 'var(--armory-text-dim)' }} />}
               placeholder="请输入卡密"
               value={kami}
               onChange={(e) => setKami(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleBind()}
-              className="pl-10"
+              onPressEnter={handleBind}
+              size="large"
               disabled={loading}
+              style={{ height: 44, paddingLeft: 40 }}
             />
           </div>
-          {error && (
-            <div className="flex items-center gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
-          <Button className="w-full" onClick={handleBind} disabled={loading || !kami.trim()}>
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                绑定中...
-              </>
-            ) : (
-              '绑定'
-            )}
-          </Button>
-        </CardContent>
-        <CardFooter className="justify-between text-xs text-muted-foreground">
-          <Badge variant="outline">安全加密连接</Badge>
-          <span>v1.0.0</span>
-        </CardFooter>
-      </Card>
+        </div>
+
+        {error && (
+          <div style={{ marginBottom: 16 }}>
+            <Alert message={error} type="error" showIcon style={{ borderRadius: 6 }} />
+          </div>
+        )}
+
+        <Button
+          type="primary"
+          size="large"
+          block
+          onClick={handleBind}
+          disabled={loading || !kami.trim()}
+          loading={loading}
+          style={{ height: 44, fontSize: 16, fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, letterSpacing: '0.06em' }}
+        >
+          绑 定
+        </Button>
+
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginTop: 20,
+            fontSize: 11,
+            color: 'var(--armory-text-dim)',
+          }}
+        >
+          <Tag
+            style={{
+              background: 'transparent',
+              border: '1px solid var(--armory-border)',
+              color: 'var(--armory-text-dim)',
+              fontSize: 11,
+              letterSpacing: '0.04em',
+            }}
+          >
+            ● 加密连接
+          </Tag>
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>
+            v1.0.0
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

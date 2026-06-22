@@ -3,9 +3,15 @@ import { invoke } from '@tauri-apps/api/core';
 import { useModStore } from '../../stores/modStore';
 import { ModCard } from './ModCard';
 import { ModDetail } from './ModDetail';
-import { Button, Select, Badge } from '../ui';
+import { Select, Button, Space, Typography, Checkbox, Row, Col, Empty } from 'antd';
+import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  InboxOutlined,
+} from '@ant-design/icons';
 import { ModInfo } from '../../types';
-import { Package, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
+
+const { Text } = Typography;
 
 export function ModList() {
   const { mods, searchQuery, filterStatus, setFilterStatus, removeMod, updateMod } = useModStore();
@@ -70,66 +76,58 @@ export function ModList() {
     status === 'all' ? mods.length : mods.filter((m) => m.status === status).length;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Select
-            options={filterOptions.map((o) => ({
-              ...o,
-              label: `${o.label} (${countByStatus(o.value)})`,
-            }))}
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="w-40"
-          />
-        </div>
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <Select
+          value={filterStatus}
+          onChange={setFilterStatus}
+          options={filterOptions.map((o) => ({
+            value: o.value,
+            label: `${o.label} (${countByStatus(o.value)})`,
+          }))}
+          style={{ width: 160 }}
+        />
 
         {selectedIds.size > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              已选 {selectedIds.size} 项
-            </span>
-            <Button size="sm" variant="outline" onClick={() => handleBatchToggle(true)}>
-              <ToggleRight className="h-4 w-4 mr-1" /> 批量启用
+          <Space>
+            <Text type="secondary">已选 {selectedIds.size} 项</Text>
+            <Button size="small" icon={<CheckCircleOutlined />} onClick={() => handleBatchToggle(true)}>
+              批量启用
             </Button>
-            <Button size="sm" variant="outline" onClick={() => handleBatchToggle(false)}>
-              <ToggleLeft className="h-4 w-4 mr-1" /> 批量禁用
+            <Button size="small" icon={<CloseCircleOutlined />} onClick={() => handleBatchToggle(false)}>
+              批量禁用
             </Button>
-            <Button size="sm" variant="destructive">
-              <Trash2 className="h-4 w-4 mr-1" /> 批量卸载
-            </Button>
-          </div>
+          </Space>
         )}
       </div>
 
       {filteredMods.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-          <Package className="h-16 w-16 mb-4 opacity-20" />
-          <p className="text-lg">暂无模组</p>
-          <p className="text-sm">前往"安装模组"页面添加模组</p>
-        </div>
+        <Empty description="暂无模组" style={{ padding: 64 }}>
+          <Text type="secondary">前往"安装模组"页面添加模组</Text>
+        </Empty>
       ) : (
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <Row gutter={[12, 12]}>
           {filteredMods.map((mod) => (
-            <div key={mod.id} className="relative">
-              <input
-                type="checkbox"
-                checked={selectedIds.has(mod.id)}
-                onChange={() => toggleSelect(mod.id)}
-                className="absolute top-2 left-2 z-10 h-4 w-4"
-              />
-              <ModCard
-                mod={mod}
-                onToggle={handleToggle}
-                onUninstall={handleUninstall}
-                onDetail={setSelectedMod}
-              />
-            </div>
+            <Col key={mod.id} xs={24} sm={12} xl={8}>
+              <div style={{ position: 'relative' }}>
+                <Checkbox
+                  checked={selectedIds.has(mod.id)}
+                  onChange={() => toggleSelect(mod.id)}
+                  style={{ position: 'absolute', top: 8, left: 8, zIndex: 10 }}
+                />
+                <ModCard
+                  mod={mod}
+                  onToggle={handleToggle}
+                  onUninstall={handleUninstall}
+                  onDetail={setSelectedMod}
+                />
+              </div>
+            </Col>
           ))}
-        </div>
+        </Row>
       )}
 
-      <div className="text-sm text-muted-foreground border-t pt-3">
+      <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid rgba(128,128,128,0.15)', fontSize: 13, color: 'rgba(128,128,128,0.65)' }}>
         共 {mods.length} 个模组
         {filteredMods.length !== mods.length && ` (筛选后 ${filteredMods.length} 个)`}
       </div>

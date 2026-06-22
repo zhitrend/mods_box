@@ -1,87 +1,214 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useModStore } from '../../stores/modStore';
-import { cn } from '../../lib/utils';
-import { Shield } from 'lucide-react';
+import { Layout, Typography } from 'antd';
+import {
+  AppstoreOutlined,
+  DownloadOutlined,
+  DatabaseOutlined,
+  SettingOutlined,
+  InfoCircleOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  SafetyCertificateOutlined,
+} from '@ant-design/icons';
+
+const { Text } = Typography;
+
+const navItems = [
+  { path: '/', label: '模组管理', icon: <AppstoreOutlined /> },
+  { path: '/install', label: '安装模组', icon: <DownloadOutlined /> },
+  { path: '/backup', label: '备份管理', icon: <DatabaseOutlined /> },
+  { path: '/settings', label: '设置', icon: <SettingOutlined /> },
+  { path: '/about', label: '关于', icon: <InfoCircleOutlined /> },
+];
 
 export function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { sidebarCollapsed, toggleSidebar, gameConfig, isBound, kamiInfo } = useModStore();
 
-  const navItems = [
-    { path: '/', label: '模组管理', icon: '📦' },
-    { path: '/install', label: '安装模组', icon: '📥' },
-    { path: '/backup', label: '备份管理', icon: '💾' },
-    { path: '/settings', label: '设置', icon: '⚙️' },
-    { path: '/about', label: '关于', icon: 'ℹ️' },
-  ];
+  const selectedKey = navItems.find((item) => item.path === location.pathname)?.path || '/';
 
   return (
-    <aside
-      className={cn(
-        'flex flex-col border-r bg-card transition-all duration-300',
-        sidebarCollapsed ? 'w-16' : 'w-56'
-      )}
+    <Layout.Sider
+      trigger={null}
+      collapsible
+      collapsed={sidebarCollapsed}
+      width={224}
+      collapsedWidth={64}
+      style={{
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+      }}
     >
-      <div className="flex h-14 items-center border-b px-4">
-        <button
+      {/* Logo area */}
+      <div
+        style={{
+          height: 60,
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 16px',
+          borderBottom: '1px solid var(--armory-border)',
+          gap: 10,
+        }}
+      >
+        <div
           onClick={toggleSidebar}
-          className="text-lg hover:bg-accent rounded-md p-1"
-          title="切换侧边栏"
+          style={{
+            cursor: 'pointer',
+            fontSize: 18,
+            padding: 6,
+            borderRadius: 6,
+            color: 'var(--armory-gold)',
+            transition: 'all 0.2s',
+            flexShrink: 0,
+          }}
+          className="hoverable-icon"
+          title={sidebarCollapsed ? '展开侧栏' : '收起侧栏'}
         >
-          {sidebarCollapsed ? '☰' : '✕'}
-        </button>
+          {sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+        </div>
         {!sidebarCollapsed && (
-          <span className="ml-3 font-semibold text-sm truncate">WoT Mods Manager</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                fontFamily: "'Rajdhani', sans-serif",
+                fontWeight: 700,
+                fontSize: 16,
+                letterSpacing: '0.06em',
+                color: 'var(--armory-gold)',
+                lineHeight: 1.2,
+              }}
+            >
+              WoT MODS
+            </div>
+            <div
+              style={{
+                fontFamily: "'Rajdhani', sans-serif",
+                fontWeight: 500,
+                fontSize: 10,
+                letterSpacing: '0.12em',
+                color: 'var(--armory-text-dim)',
+                textTransform: 'uppercase',
+              }}
+            >
+              Manager
+            </div>
+          </div>
         )}
       </div>
 
-      <nav className="flex-1 space-y-1 p-2">
-        {navItems.map((item) => (
-          <button
-            key={item.path}
-            onClick={() => navigate(item.path)}
-            className={cn(
-              'w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
-              location.pathname === item.path
-                ? 'bg-accent text-accent-foreground font-medium'
-                : 'text-muted-foreground'
-            )}
-            title={item.label}
-          >
-            <span className="text-lg">{item.icon}</span>
-            {!sidebarCollapsed && <span>{item.label}</span>}
-          </button>
-        ))}
-      </nav>
+      {/* Navigation */}
+      <div style={{ flex: 1, padding: '8px 0' }}>
+        {navItems.map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <div
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '10px 16px',
+                margin: '2px 8px',
+                borderRadius: 6,
+                cursor: 'pointer',
+                fontSize: 15,
+                fontFamily: "'Rajdhani', sans-serif",
+                fontWeight: 500,
+                letterSpacing: '0.02em',
+                color: isActive ? 'var(--armory-gold)' : 'var(--armory-text-secondary)',
+                background: isActive ? 'var(--armory-gold-glow)' : 'transparent',
+                position: 'relative',
+                transition: 'all 0.2s ease',
+              }}
+              className={isActive ? undefined : 'nav-item'}
+              title={item.label}
+            >
+              {isActive && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: 3,
+                    height: 20,
+                    background: 'var(--armory-gold)',
+                    borderRadius: '0 2px 2px 0',
+                  }}
+                />
+              )}
+              <span style={{ fontSize: 16, lineHeight: 1, flexShrink: 0 }}>{item.icon}</span>
+              {!sidebarCollapsed && <span>{item.label}</span>}
+            </div>
+          );
+        })}
+      </div>
 
-      <div className="border-t p-3 space-y-2">
+      {/* Bottom info */}
+      <div
+        style={{
+          borderTop: '1px solid var(--armory-border)',
+          padding: '12px 16px',
+        }}
+      >
         {!sidebarCollapsed && isBound && kamiInfo && (
-          <div className="flex items-center gap-2 rounded-md bg-primary/10 px-2 py-1.5 text-xs">
-            <Shield className="h-3 w-3 text-primary shrink-0" />
-            <span className="text-primary font-medium">VIP</span>
-            <span className="text-muted-foreground ml-auto">
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              marginBottom: 10,
+              padding: '6px 10px',
+              background: 'var(--armory-gold-glow)',
+              borderRadius: 6,
+              fontSize: 12,
+            }}
+          >
+            <SafetyCertificateOutlined style={{ color: 'var(--armory-gold)', fontSize: 14 }} />
+            <span style={{ color: 'var(--armory-gold)', fontWeight: 600, fontSize: 13, fontFamily: "'Rajdhani', sans-serif" }}>
+              VIP
+            </span>
+            <span style={{ color: 'var(--armory-text-dim)', marginLeft: 'auto', fontSize: 11 }}>
               {kamiInfo.expire_time ? kamiInfo.expire_time.split(' ')[0] : '永久'}
             </span>
           </div>
         )}
         {sidebarCollapsed && isBound && (
-          <div className="flex justify-center" title="VIP 会员">
-            <Shield className="h-4 w-4 text-primary" />
+          <div style={{ textAlign: 'center', marginBottom: 8 }}>
+            <SafetyCertificateOutlined style={{ color: 'var(--armory-gold)', fontSize: 16 }} />
           </div>
         )}
         {!sidebarCollapsed && gameConfig && (
-          <div className="text-xs text-muted-foreground truncate">
-            <div>游戏: v{gameConfig.version}</div>
-            <div className="truncate">{gameConfig.region}</div>
+          <div style={{ fontSize: 11, color: 'var(--armory-text-dim)', lineHeight: 1.6 }}>
+            <div>v{gameConfig.version}</div>
+            <div
+              style={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {gameConfig.region}
+            </div>
           </div>
         )}
         {sidebarCollapsed && (
-          <div className="text-center text-xs text-muted-foreground" title="游戏版本">
+          <div
+            style={{
+              textAlign: 'center',
+              fontSize: 11,
+              color: 'var(--armory-text-dim)',
+            }}
+          >
             v{gameConfig?.version || '?'}
           </div>
         )}
       </div>
-    </aside>
+    </Layout.Sider>
   );
 }

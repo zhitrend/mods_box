@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useModStore } from '../../stores/modStore';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, Button, Badge, Input } from '../ui';
+import { Card, Button, Input, Typography, Empty, Space, Tag, message } from 'antd';
+import { SaveOutlined, ReloadOutlined, DeleteOutlined, ClockCircleOutlined, DatabaseOutlined } from '@ant-design/icons';
 import { BackupInfo } from '../../types';
-import { Save, RotateCcw, Trash2, Clock, Database } from 'lucide-react';
-import { formatFileSize } from '../../lib/utils';
+
+const { Title, Text } = Typography;
 
 export function BackupManager() {
-  const { backups, setBackups, mods } = useModStore();
+  const { backups, setBackups } = useModStore();
   const [backupName, setBackupName] = useState('');
   const [backupDesc, setBackupDesc] = useState('');
 
@@ -34,8 +35,9 @@ export function BackupManager() {
       setBackupName('');
       setBackupDesc('');
       loadBackups();
+      message.success('备份创建成功');
     } catch (e) {
-      console.error('Create backup failed:', e);
+      message.error(`创建备份失败: ${e}`);
     }
   };
 
@@ -43,8 +45,9 @@ export function BackupManager() {
     try {
       await invoke('restore_backup', { backupId: id });
       loadBackups();
+      message.success('备份恢复成功');
     } catch (e) {
-      console.error('Restore backup failed:', e);
+      message.error(`恢复备份失败: ${e}`);
     }
   };
 
@@ -52,19 +55,20 @@ export function BackupManager() {
     try {
       await invoke('delete_backup', { backupId: id });
       setBackups(backups.filter((b) => b.id !== id));
+      message.success('备份已删除');
     } catch (e) {
-      console.error('Delete backup failed:', e);
+      message.error(`删除备份失败: ${e}`);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>创建备份</CardTitle>
-          <CardDescription>备份当前模组配置和文件状态</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
+    <div>
+      <Card style={{ marginBottom: 24 }}>
+        <Title level={5}>创建备份</Title>
+        <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+          备份当前模组配置和文件状态
+        </Text>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 400 }}>
           <Input
             placeholder="备份名称"
             value={backupName}
@@ -75,68 +79,72 @@ export function BackupManager() {
             value={backupDesc}
             onChange={(e) => setBackupDesc(e.target.value)}
           />
-          <Button onClick={handleCreateBackup} disabled={!backupName.trim()}>
-            <Save className="h-4 w-4 mr-2" /> 创建备份
+          <Button
+            type="primary"
+            icon={<SaveOutlined />}
+            onClick={handleCreateBackup}
+            disabled={!backupName.trim()}
+            style={{ alignSelf: 'flex-start' }}
+          >
+            创建备份
           </Button>
-        </CardContent>
+        </div>
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>备份列表</CardTitle>
-          <CardDescription>管理已创建的备份</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {backups.length === 0 ? (
-            <div className="flex flex-col items-center py-8 text-muted-foreground">
-              <Database className="h-12 w-12 mb-3 opacity-20" />
-              <p className="text-sm">暂无备份</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {backups.map((backup) => (
-                <div
-                  key={backup.id}
-                  className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent/50"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">{backup.name}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {backup.mod_list.length} 个模组
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {backup.created_at}
-                      </span>
-                      {backup.description && <span>{backup.description}</span>}
-                    </div>
+        <Title level={5}>备份列表</Title>
+        <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+          管理已创建的备份
+        </Text>
+
+        {backups.length === 0 ? (
+          <Empty description="暂无备份" style={{ padding: 32 }} />
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {backups.map((backup) => (
+              <div
+                key={backup.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 16px',
+                  borderRadius: 8,
+                  border: '1px solid rgba(128,128,128,0.15)',
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <Text strong>{backup.name}</Text>
+                    <Tag>{backup.mod_list.length} 个模组</Tag>
                   </div>
-                  <div className="flex items-center gap-2 ml-4">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleRestore(backup.id)}
-                      title="恢复"
-                    >
-                      <RotateCcw className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleDelete(backup.id)}
-                      title="删除"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <Space size={16} style={{ fontSize: 12, color: 'rgba(128,128,128,0.65)' }}>
+                    <span>
+                      <ClockCircleOutlined style={{ marginRight: 4 }} />
+                      {backup.created_at}
+                    </span>
+                    {backup.description && <span>{backup.description}</span>}
+                  </Space>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
+                <Space style={{ marginLeft: 16 }}>
+                  <Button
+                    size="small"
+                    icon={<ReloadOutlined />}
+                    onClick={() => handleRestore(backup.id)}
+                    title="恢复"
+                  />
+                  <Button
+                    size="small"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => handleDelete(backup.id)}
+                    title="删除"
+                  />
+                </Space>
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
     </div>
   );
