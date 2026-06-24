@@ -1,5 +1,6 @@
 use crate::core::config;
 use crate::core::conflict::ConflictStrategy;
+use crate::core::conflict::ConflictDetector;
 use crate::core::installer::ModInstaller;
 use crate::core::loader::ModLoader;
 use crate::models::ModInfo;
@@ -14,6 +15,12 @@ pub struct AppState {
 }
 
 #[tauri::command]
+pub async fn get_mods(state: State<'_, AppState>) -> Result<Vec<ModInfo>, String> {
+    let mods = state.mods.lock().await;
+    Ok(mods.clone())
+}
+
+#[tauri::command]
 pub async fn install_mod(
     state: State<'_, AppState>,
     file_path: String,
@@ -22,7 +29,7 @@ pub async fn install_mod(
     let game_dir = state.game_dir.lock().await.clone()
         .ok_or_else(|| "Game directory not configured".to_string())?;
     let game_version = state.game_version.lock().await.clone()
-        .unwrap_or_else(|| "1.28.0.0".to_string());
+        .unwrap_or_default();
 
     let conflict_strategy = match strategy.as_str() {
         "overwrite" => ConflictStrategy::Overwrite,
@@ -43,12 +50,15 @@ pub async fn install_mod(
         .map(|s| s.to_lowercase())
         .unwrap_or_default();
 
+    let installed_mods = state.mods.lock().await.clone();
+
     let mod_info = match ext.as_str() {
         "rar" => ModInstaller::install_from_rar(
             &file_path_buf,
             &game_dir,
             &game_version,
             conflict_strategy,
+            &installed_mods,
         )
         .await
         .map_err(|e| e.to_string())?,
@@ -58,6 +68,7 @@ pub async fn install_mod(
             &game_version,
             conflict_strategy,
             None,
+            &installed_mods,
         )
         .await
         .map_err(|e| e.to_string())?,
@@ -71,9 +82,56 @@ pub async fn install_mod(
 }
 
 #[tauri::command]
-pub async fn get_mods(state: State<'_, AppState>) -> Result<Vec<ModInfo>, String> {
-    let mods = state.mods.lock().await;
-    Ok(mods.clone())
+pub async fn precheck_install_conflicts(
+    state: State<'_, AppState>,
+    file_path: String,
+) -> Result<(Vec<crate::models::ConflictInfo>, crate::models::ModInfo), String> {
+    let game_dir = state.game_dir.lock().await.clone()
+        .ok_or_else(|| "Game directory not configured".to_string())?;
+    let game_version = state.game_version.lock().await.clone()
+        .unwrap_or_default();
+
+    let installed_mods = state.mods.lock().await.clone();
+
+    let temp_dir = std::env::temp_dir().join(format!("wot_precheck_{}", uuid::Uuid::new_v4()));
+    crate::utils::file::ensure_dir(&temp_dir).await.map_err(|e| e.to_string())?;
+
+    let zip_path = PathBuf::from(&file_path);
+    if !zip_path.exists() {
+        return Err("File not found".to_string());
+    }
+
+    let extract_result = ModInstaller::extract_zip_precheck(&zip_path, &temp_dir, &game_version)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let conflicts = ConflictDetector::detect_conflicts(
+        &game_dir,
+        &extract_result.mod_files,
+        &installed_mods,
+    );
+
+    crate::utils::file::remove_dir(&temp_dir).await.map_err(|e| e.to_string())?;
+
+    Ok((conflicts, ModInfo {
+        id: String::new(),
+        name: extract_result.name,
+        version: extract_result.version,
+        author: extract_result.author,
+        description: extract_result.description,
+        category: extract_result.category,
+        status: crate::models::ModStatus::Enabled,
+        installed_at: String::new(),
+        install_path: PathBuf::new(),
+        file_size: 0,
+        game_version: game_version.clone(),
+        files: extract_result.mod_files,
+        conflicts: vec![],
+        dependencies: vec![],
+        tags: extract_result.tags,
+        source: Some(file_path),
+        enabled: true,
+    }))
 }
 
 #[tauri::command]
@@ -172,4 +230,27 @@ pub async fn refresh_mods(state: State<'_, AppState>) -> Result<Vec<ModInfo>, St
     let mut current_mods = state.mods.lock().await;
     *current_mods = mods.clone();
     Ok(mods)
+}
+
+#[tauri::command]
+pub async fn check_mod_updates(
+    state: State<'_, AppState>,
+) -> Result<Vec<crate::models::ModInfo>, String> {
+    let mods = state.mods.lock().await;
+    let game_version = state.game_version.lock().await.clone().unwrap_or_default();
+    let mut updated = Vec::new();
+
+    for mod_info in mods.iter() {
+        let is_outdated = !mod_info.game_version.is_empty()
+            && !game_version.is_empty()
+            && mod_info.game_version != game_version;
+
+        if is_outdated {
+            let mut m = mod_info.clone();
+            m.status = crate::models::ModStatus::Outdated;
+            updated.push(m);
+        }
+    }
+
+    Ok(updated)
 }

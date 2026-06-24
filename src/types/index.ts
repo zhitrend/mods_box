@@ -6,6 +6,8 @@ export type GameRegion = 'EU' | 'NA' | 'ASIA' | 'RU' | 'CN';
 
 export type ConflictResolution = 'Pending' | 'Merged' | 'Overwritten' | 'Skipped' | 'Renamed' | 'Isolated';
 
+export type ConflictGrade = 'High' | 'Medium' | 'Low';
+
 export interface ModFile {
   relative_path: string;
   hash: string;
@@ -16,6 +18,7 @@ export interface ConflictInfo {
   file_path: string;
   conflict_with: string[];
   resolution: ConflictResolution;
+  grade: ConflictGrade;
 }
 
 export interface ModInfo {

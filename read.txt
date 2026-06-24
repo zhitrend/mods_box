@@ -1,0 +1,663 @@
+WoT Mods Manager - 坦克世界模组管理器
+项目需求文档（完整版）
+一、项目概述
+1.1 基本信息
+项目名	WoT Mods Manager
+描述	坦克世界（World of Tanks）模组管理桌面客户端
+技术栈	Rust + Tauri (v2) + React + TypeScript
+目标平台	Windows 10/11
+许可证	MIT / GPL-3.0
+1.2 项目目标
+为《坦克世界》玩家提供一个轻量、安全、易用的模组管理工具，解决以下痛点：
+
+模组文件散落、管理混乱
+
+手动备份/恢复繁琐
+
+模组版本与游戏版本兼容性不明
+
+多模组同名文件冲突难以处理
+
+二、核心功能需求
+2.1 模组管理
+2.1.1 模组列表
+以卡片/列表视图展示所有已安装模组
+
+支持按名称、状态、分类、安装时间排序和筛选
+
+显示模组：名称、版本、作者、状态（启用/禁用/过时/冲突）、安装时间、文件大小
+
+2.1.2 模组安装
+本地安装（主要方式）
+
+支持拖拽 .zip、.wotmod 文件到应用窗口安装
+
+支持通过文件选择对话框选择安装包
+
+支持批量安装多个模组
+
+内置模组包
+
+软件安装包内预置常用模组集合（如 XVM、瞄准插件等）
+
+用户可选择从内置包一键安装
+
+2.1.3 模组操作
+启用/禁用（切换激活状态）
+
+卸载（安全删除，含文件清理）
+
+批量启用/禁用/卸载
+
+查看模组详情（元数据、文件结构、依赖关系）
+
+2.1.4 更新检测
+检查已安装模组是否有新版本（基于本地缓存或用户手动指定版本信息）
+
+2.2 冲突处理（核心特性）
+问题背景：不同模组解压后可能包含同名文件夹（如 res_mods/1.18.0.1/gui/），直接覆盖会导致模组互相破坏。
+
+解决方案：
+
+安装时冲突检测
+
+解压前扫描目标目录，检测是否存在同名文件/文件夹
+
+如有冲突，展示冲突文件列表供用户选择处理方式
+
+冲突处理策略
+
+智能合并：自动合并不同模组的文件，同名文件按优先级保留
+
+覆盖：用新模组文件覆盖旧文件（警告用户）
+
+跳过：保留现有文件，不安装冲突部分
+
+重命名：将新文件重命名为 filename_conflict_xxx.ext
+
+创建隔离目录：为每个模组创建独立子目录，通过加载器配置管理
+
+冲突标记
+
+在模组列表中标记存在冲突的模组
+
+显示冲突详情（与哪些模组冲突、冲突文件列表）
+
+2.3 游戏集成
+自动检测：扫描注册表（HKEY_LOCAL_MACHINE\SOFTWARE\Wargaming.net\WOT）和常见安装目录（C:\Games\World_of_Tanks、C:\Program Files\World_of_Tanks）
+
+手动配置：允许用户手动指定游戏安装路径
+
+版本检测：读取游戏 version.xml 或 game_version 文件获取版本号
+
+一键启动：从管理器直接启动游戏（支持启动参数配置）
+
+多区服支持：支持 EU/NA/ASIA/RU/CN 区服切换
+
+2.4 备份与恢复
+安装前自动备份：安装新模组前自动备份将被修改的文件
+
+手动备份：用户可创建当前模组配置快照
+
+备份管理：查看、删除、恢复备份
+
+备份内容：模组文件 + 模组列表状态
+
+2.5 配置管理
+配置文件编辑：直接在应用内编辑模组配置文件（如 config.xml、settings.json）
+
+配置预设：保存和加载常用模组配置方案
+
+配置导入/导出：分享配置方案（JSON 格式）
+
+2.6 系统集成
+单实例：确保应用只运行一个实例
+
+文件关联：关联 .wotmod 文件格式，双击直接打开
+
+系统托盘：快速启用/禁用模组、启动游戏、退出应用
+
+开机启动（可选）：开机自动启动，托盘常驻
+
+三、技术架构
+3.1 技术栈选型
+层级	技术	说明
+桌面框架	Tauri v2	跨平台桌面应用框架
+后端语言	Rust	系统交互、文件操作、性能敏感逻辑
+前端框架	React 18	UI 渲染
+前端语言	TypeScript	类型安全
+UI 组件库	Shadcn/ui + TailwindCSS	现代化 UI 组件
+状态管理	Zustand	轻量状态管理
+数据请求	React Query	异步数据缓存和同步
+表单处理	React Hook Form	表单验证
+构建工具	Vite	前端构建
+异步运行时	Tokio	Rust 异步运行时
+序列化	Serde	JSON 序列化/反序列化
+错误处理	Anyhow / Thiserror	错误处理
+ZIP 解压	zip crate	解压模组包
+HTTP 客户端	Reqwest	网络请求
+文件监控	notify crate	监视模组目录变化
+日志	log + env_logger	日志记录
+3.2 项目结构
+text
+wot-mods-manager/
+├── src-tauri/                      # Tauri 后端
+│   ├── src/
+│   │   ├── main.rs                # 入口
+│   │   ├── lib.rs                 # 库
+│   │   ├── commands/              # Tauri 命令
+│   │   │   ├── mod.rs
+│   │   │   ├── mod_manager.rs     # 模组管理命令
+│   │   │   ├── game.rs            # 游戏检测命令
+│   │   │   ├── backup.rs          # 备份命令
+│   │   │   └── conflict.rs        # 冲突检测命令
+│   │   ├── core/                  # 核心逻辑
+│   │   │   ├── mod.rs
+│   │   │   ├── installer.rs       # 模组安装器
+│   │   │   ├── loader.rs          # 模组加载器
+│   │   │   ├── conflict.rs        # 冲突检测与解决
+│   │   │   └── config.rs          # 配置管理
+│   │   ├── models/                # 数据模型
+│   │   │   ├── mod.rs
+│   │   │   ├── mod_info.rs        # 模组信息
+│   │   │   ├── game.rs            # 游戏配置
+│   │   │   └── backup.rs          # 备份信息
+│   │   ├── utils/                 # 工具函数
+│   │   │   ├── file.rs            # 文件操作
+│   │   │   ├── registry.rs        # 注册表操作（Windows）
+│   │   │   └── hash.rs            # 文件哈希
+│   │   └── error.rs               # 错误定义
+│   ├── Cargo.toml
+│   ├── tauri.conf.json            # Tauri 配置
+│   └── icons/                     # 应用图标
+│
+├── src/                            # 前端源码
+│   ├── components/
+│   │   ├── ui/                    # 通用 UI 组件
+│   │   ├── mods/                  # 模组相关
+│   │   │   ├── ModList.tsx
+│   │   │   ├── ModCard.tsx
+│   │   │   ├── ModDetail.tsx
+│   │   │   ├── ModInstall.tsx
+│   │   │   └── ConflictResolver.tsx  # 冲突解决界面
+│   │   ├── backup/                # 备份相关
+│   │   ├── settings/              # 设置页面
+│   │   └── layout/                # 布局
+│   ├── hooks/                     # 自定义 Hooks
+│   ├── stores/                    # Zustand 状态
+│   ├── services/                  # API 服务
+│   ├── types/                     # TypeScript 类型定义
+│   ├── utils/                     # 工具函数
+│   ├── App.tsx
+│   └── main.tsx
+│
+├── mods-packages/                  # 内置模组包（打包时嵌入）
+│   ├── xvm/
+│   ├── aim-assist/
+│   └── ...
+│
+├── package.json
+├── tailwind.config.js
+├── vite.config.ts
+├── tsconfig.json
+└── README.md
+3.3 数据模型
+模组信息 (ModInfo)
+rust
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModInfo {
+    pub id: String,                      // 唯一ID（基于文件路径哈希）
+    pub name: String,                    // 模组名称
+    pub version: String,                 // 版本号
+    pub author: String,                  // 作者
+    pub description: String,             // 描述
+    pub category: ModCategory,           // 分类
+    pub status: ModStatus,               // 状态
+    pub installed_at: DateTime<Local>,   // 安装时间
+    pub install_path: PathBuf,           // 安装路径（相对于游戏目录）
+    pub file_size: u64,                  // 文件大小
+    pub game_version: String,            // 兼容的游戏版本
+    pub files: Vec<ModFile>,             // 安装的文件列表（用于卸载）
+    pub conflicts: Vec<ConflictInfo>,    // 冲突信息
+    pub dependencies: Vec<String>,       // 依赖的模组ID
+    pub tags: Vec<String>,               // 标签
+    pub source: Option<String>,          // 来源（内置包/本地文件）
+    pub enabled: bool,                   // 是否启用
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum ModStatus {
+    Enabled,
+    Disabled,
+    Conflict,      // 存在冲突
+    Outdated,      // 版本过时
+    Incompatible,  // 不兼容当前游戏版本
+    Error,         // 错误状态
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ModCategory {
+    Aiming,        // 瞄准
+    Crosshair,     // 准星
+    DamagePanel,   // 伤害面板
+    Garage,        // 车库
+    Minimap,       // 小地图
+    Sound,         // 音效
+    Visual,        // 视觉
+    Utility,       // 实用工具
+    XVM,           // XVM
+    Other,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModFile {
+    pub relative_path: String,    // 相对于游戏目录的路径
+    pub hash: String,             // 文件哈希（用于冲突检测）
+    pub size: u64,
+}
+冲突信息 (ConflictInfo)
+rust
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConflictInfo {
+    pub file_path: String,               // 冲突文件路径
+    pub conflict_with: Vec<String>,      // 冲突的模组ID列表
+    pub resolution: ConflictResolution,  // 解决方式
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ConflictResolution {
+    Pending,       // 待处理
+    Merged,        // 已合并
+    Overwritten,   // 已覆盖（保留最新）
+    Skipped,       // 已跳过（保留原有）
+    Renamed,       // 已重命名
+    Isolated,      // 隔离安装
+}
+游戏配置 (GameConfig)
+rust
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GameConfig {
+    pub install_path: PathBuf,           // 游戏安装路径
+    pub version: String,                 // 游戏版本
+    pub region: GameRegion,              // 区服
+    pub mods_dir: PathBuf,               // mods 目录路径
+    pub res_mods_dir: PathBuf,           // res_mods 目录路径
+    pub auto_detect: bool,               // 是否自动检测
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum GameRegion {
+    EU, NA, ASIA, RU, CN,
+}
+备份信息 (BackupInfo)
+rust
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupInfo {
+    pub id: String,                      // 备份ID
+    pub name: String,                    // 备份名称
+    pub created_at: DateTime<Local>,     // 创建时间
+    pub description: String,             // 描述
+    pub mod_list: Vec<String>,           // 包含的模组ID列表
+    pub size: u64,                       // 备份大小
+    pub path: PathBuf,                   // 备份存储路径
+}
+四、功能模块详细设计
+4.1 模组安装流程
+text
+用户触发安装
+    │
+    ▼
+┌─────────────────────┐
+│ 选择安装源          │
+│ ├─ 本地 ZIP 文件    │
+│ ├─ 拖拽文件         │
+│ └─ 内置模组包       │
+└─────────────────────┘
+    │
+    ▼
+┌─────────────────────┐
+│ 解压到临时目录      │
+│ 读取模组元数据      │
+│ 验证文件完整性      │
+└─────────────────────┘
+    │
+    ▼
+┌─────────────────────┐
+│ 冲突检测            │
+│ ├─ 扫描目标目录     │
+│ └─ 标记冲突文件     │
+└─────────────────────┘
+    │
+    ▼
+┌─────────────────────┐
+│ 冲突处理            │
+│ ├─ 智能合并         │
+│ ├─ 覆盖             │
+│ ├─ 跳过             │
+│ ├─ 重命名           │
+│ └─ 隔离安装         │
+└─────────────────────┘
+    │
+    ▼
+┌─────────────────────┐
+│ 创建备份（原文件）   │
+└─────────────────────┘
+    │
+    ▼
+┌─────────────────────┐
+│ 复制文件到目标目录   │
+│ 记录安装文件列表     │
+└─────────────────────┘
+    │
+    ▼
+┌─────────────────────┐
+│ 更新模组数据库       │
+│ 标记状态             │
+└─────────────────────┘
+4.2 冲突检测算法
+扫描目标目录：递归扫描模组将要安装到的目标目录（如 res_mods/1.18.0.1/）
+
+构建已安装文件索引：记录所有已安装文件的相对路径和哈希值
+
+对比新模组文件：遍历新模组解压后的所有文件
+
+冲突判定：
+
+如果文件路径已存在 → 冲突
+
+如果文件路径不存在 → 无冲突
+
+冲突分级：
+
+高冲突：同名且内容不同（哈希不同）
+
+中冲突：同名但来自相同模组的不同版本
+
+低冲突：同名且内容相同（可安全覆盖）
+
+4.3 冲突处理策略实现
+rust
+pub enum ConflictStrategy {
+    /// 智能合并 - 按优先级保留文件
+    SmartMerge,
+    /// 覆盖 - 新文件覆盖旧文件
+    Overwrite,
+    /// 跳过 - 保留旧文件
+    Skip,
+    /// 重命名 - 新文件重命名后安装
+    Rename,
+    /// 隔离 - 安装在独立子目录
+    Isolate,
+}
+4.4 模组启用/禁用机制
+方式一：文件重命名（推荐）
+
+启用：将 .wotmod 保持原样
+
+禁用：将 .wotmod 重命名为 .wotmod.disabled
+
+方式二：文件移动
+
+将模组文件移出加载目录（如移到 _disabled/ 子目录）
+
+方式三：游戏加载器配置
+
+部分模组支持通过配置文件启用/禁用
+
+本方案采用方式一 + 方式二组合：主要使用文件重命名，对于不支持重命名的模组使用移动方式。
+
+五、UI/UX 设计
+5.1 整体布局
+text
++------------------------------------------------------------------+
+|  [Logo] WoT Mods Manager v1.0          [搜索框] [⚙️设置] [🌙主题]  |
++------------------------------------------------------------------+
+| 侧边栏                    |  主内容区域                           |
+|                           |                                      |
+|  📦 模组管理              |  [全部] [已启用] [已禁用] [冲突]     |
+|  📥 安装模组              |                                      |
+|  💾 备份管理              |  ┌──────────────────────────────┐   |
+|  ⚙️ 设置                  |  │ 模组卡片/列表视图           │   |
+|  ℹ️ 关于                  |  │                              │   |
+|                           |  │  [模组A]  [模组B]  [模组C]  │   |
+|                           |  │  [模组D]  [模组E]  [模组F]  │   |
+|                           |  └──────────────────────────────┘   |
+|                           |                                      |
+|                           |  状态栏: 共 15 个模组 | 游戏 v1.18.0.1 |
++------------------------------------------------------------------+
+5.2 主要页面
+页面	功能
+模组管理	展示所有模组，支持筛选、排序、批量操作
+安装模组	文件选择、拖拽安装、内置包安装
+冲突解决	可视化冲突文件列表，选择处理策略
+备份管理	创建/恢复/删除备份
+设置	游戏路径、区服、主题、通用设置
+关于	版本信息、更新日志
+5.3 主题支持
+亮色 / 暗色模式（跟随系统或手动切换）
+
+支持自定义强调色
+
+六、技术实现要点
+6.1 Windows 平台特定实现
+游戏路径自动检测（Windows 注册表）
+rust
+use winreg::RegKey;
+use winreg::enums::HKEY_LOCAL_MACHINE;
+
+pub fn detect_wot_path() -> Option<PathBuf> {
+    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+    let path = r"SOFTWARE\Wargaming.net\WOT";
+    if let Ok(key) = hklm.open_subkey(path) {
+        if let Ok(install_path) = key.get_value::<String, _>("InstallDir") {
+            return Some(PathBuf::from(install_path));
+        }
+    }
+    // 常见安装目录回退
+    let common_paths = vec![
+        "C:\\Games\\World_of_Tanks",
+        "C:\\Program Files\\World_of_Tanks",
+        "C:\\Program Files (x86)\\World_of_Tanks",
+    ];
+    for path in common_paths {
+        let p = PathBuf::from(path);
+        if p.exists() {
+            return Some(p);
+        }
+    }
+    None
+}
+单实例实现
+使用 Tauri 官方 tauri-plugin-single-instance 插件：
+
+rust
+// src-tauri/src/main.rs
+tauri::Builder::default()
+    .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
+        // 已有实例运行时，可在此处理新实例传来的参数
+        println!("新实例启动，参数: {:?}", argv);
+    }))
+    .run(tauri::generate_context!())
+    .expect("error while running tauri application");
+6.2 文件操作与权限
+Tauri 文件系统插件需要配置权限范围：
+
+json
+// tauri.conf.json 或 capabilities 配置
+{
+  "permissions": [
+    "fs:allow-appdata-read-recursive",
+    "fs:allow-appdata-write-recursive",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        "$APPDATA/wot-mods/**/*",
+        "C:/Games/World_of_Tanks/**/*",
+        "C:/Program Files/World_of_Tanks/**/*"
+      ]
+    }
+  ]
+}
+6.3 前后端通信模式
+参考 Outer Wilds Mod Manager 的实现模式：
+
+1. 命令定义（Rust 后端）
+
+rust
+#[tauri::command]
+async fn install_mod(
+    state: tauri::State<'_, AppState>,
+    handle: tauri::AppHandle,
+    file_path: String,
+) -> Result<ModInfo, String> {
+    // 安装逻辑...
+    // 发射事件通知前端
+    handle.emit("mod-installed", &install_result).unwrap();
+    Ok(install_result)
+}
+2. 前端调用（TypeScript）
+
+typescript
+import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
+
+// 调用命令
+const result = await invoke<ModInfo>('install_mod', { filePath: path });
+
+// 监听事件
+listen('mod-installed', (event) => {
+    console.log('模组已安装:', event.payload);
+});
+3. 类型共享
+
+使用 typeshare 在 Rust 和 TypeScript 之间共享类型定义：
+
+rust
+#[typeshare]
+pub struct ModInfo {
+    pub id: String,
+    pub name: String,
+    // ...
+}
+运行 cargo install typeshare-cli && typeshare ./src --lang=typescript > ../src/types.ts 生成 TypeScript 类型。
+
+6.4 冲突处理关键代码结构
+rust
+// core/conflict.rs
+pub struct ConflictDetector;
+
+impl ConflictDetector {
+    /// 检测模组安装时的文件冲突
+    pub fn detect_conflicts(
+        game_dir: &Path,
+        mod_files: &[ModFile],
+        installed_mods: &[ModInfo],
+    ) -> Vec<ConflictInfo> {
+        let mut conflicts = Vec::new();
+        for file in mod_files {
+            let target_path = game_dir.join(&file.relative_path);
+            if target_path.exists() {
+                // 计算已存在文件的哈希
+                let existing_hash = hash_file(&target_path);
+                if existing_hash != file.hash {
+                    conflicts.push(ConflictInfo {
+                        file_path: file.relative_path.clone(),
+                        conflict_with: find_owners(&target_path, installed_mods),
+                        resolution: ConflictResolution::Pending,
+                    });
+                }
+            }
+        }
+        conflicts
+    }
+}
+七、内置模组包管理
+7.1 打包方式
+将模组包放在 mods-packages/ 目录，在 Tauri 构建时嵌入：
+
+toml
+# tauri.conf.json
+{
+  "tauri": {
+    "bundle": {
+      "resources": {
+        "mods-packages/**/*": "mods-packages/"
+      }
+    }
+  }
+}
+7.2 内置包元数据
+每个内置包根目录包含 manifest.json：
+
+json
+{
+  "id": "xvm",
+  "name": "XVM Mod",
+  "version": "8.8.0",
+  "author": "XVM Team",
+  "description": "XVM 综合模组包，包含战绩统计、效率标签等",
+  "game_version": "1.18.0.1",
+  "category": "XVM",
+  "tags": ["xvm", "stats", "wn8"],
+  "files": [
+    "res_mods/1.18.0.1/gui/",
+    "res_mods/1.18.0.1/scripts/"
+  ]
+}
+八、已知参考项目
+8.1 类似项目参考
+项目	技术栈	说明
+ow-mod-man (Outer Wilds Mod Manager)	Rust + Tauri + React	外野世界模组管理器，架构可参考
+wg-mod	Rust CLI	坦克世界模组开发 CLI 工具，MIT 协议
+8.2 可借鉴的设计模式
+状态管理模式：使用 StatePart<T> 封装共享状态，Arc<TokioLock<T>> 保证线程安全
+
+事件驱动更新：后端通过事件通知前端状态变化，实现响应式 UI
+
+进度报告机制：长时间操作通过 progress_bars 组件上报进度
+
+协议处理：支持 wotmods:// 自定义协议，实现文件关联和外部调用
+
+九、开发计划
+阶段	时间	内容
+Phase 1	第1-2周	项目初始化、基础 UI 框架、游戏路径检测
+Phase 2	第3-4周	模组安装（本地文件 + 内置包）、模组列表展示
+Phase 3	第5-6周	冲突检测与解决、模组启用/禁用、卸载
+Phase 4	第7-8周	备份管理、配置管理、系统集成（托盘、文件关联）
+Phase 5	第9-10周	测试、优化、打包发布
+十、风险与应对
+风险	应对措施
+游戏更新导致模组路径变化	定期更新游戏版本兼容列表，支持用户手动配置路径
+模组文件损坏或不完整	安装前验证 ZIP 完整性，计算文件哈希
+权限不足（Program Files 写入）	提示用户以管理员身份运行，或建议将游戏安装在非系统目录
+大模组包解压慢	使用异步流式解压，显示进度条
+同名文件冲突导致游戏崩溃	完善的冲突检测机制，安装前预览冲突并让用户选择处理方式
+附录
+A. 相关文件路径
+路径	说明
+{游戏目录}/res_mods/{版本号}/	模组文件主要安装目录
+{游戏目录}/mods/{版本号}/	部分模组的安装目录
+{游戏目录}/version.xml	游戏版本信息
+HKEY_LOCAL_MACHINE\SOFTWARE\Wargaming.net\WOT	Windows 注册表游戏路径
+B. 推荐 Rust Crates
+zip - ZIP 解压
+
+walkdir - 递归目录遍历
+
+sha2 / blake3 - 文件哈希
+
+serde / serde_json - JSON 序列化
+
+anyhow / thiserror - 错误处理
+
+tokio - 异步运行时
+
+reqwest - HTTP 客户端
+
+winreg - Windows 注册表操作
+
+notify - 文件系统监控
+
+tauri-plugin-single-instance - 单实例插件
+
+tauri-plugin-fs - 文件系统插件

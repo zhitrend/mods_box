@@ -3,10 +3,11 @@ import { invoke } from '@tauri-apps/api/core';
 import { useModStore } from '../../stores/modStore';
 import { ModCard } from './ModCard';
 import { ModDetail } from './ModDetail';
-import { Select, Button, Space, Typography, Checkbox, Row, Col, Empty, Modal } from 'antd';
+import { Select, Button, Space, Typography, Checkbox, Row, Col, Empty, Modal, message } from 'antd';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
+  SyncOutlined,
   InboxOutlined,
 } from '@ant-design/icons';
 import { ModInfo } from '../../types';
@@ -17,6 +18,7 @@ export function ModList() {
   const { mods, searchQuery, filterStatus, setFilterStatus, removeMod, updateMod } = useModStore();
   const [selectedMod, setSelectedMod] = useState<ModInfo | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [checkingUpdates, setCheckingUpdates] = useState(false);
 
   const filteredMods = mods.filter((mod) => {
     const matchesSearch = mod.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -70,23 +72,51 @@ export function ModList() {
     { value: 'Disabled', label: '已禁用' },
     { value: 'Conflict', label: '冲突' },
     { value: 'Outdated', label: '过时' },
+    { value: 'Incompatible', label: '不兼容' },
   ];
 
   const countByStatus = (status: string) =>
     status === 'all' ? mods.length : mods.filter((m) => m.status === status).length;
 
+  const handleCheckUpdates = async () => {
+    setCheckingUpdates(true);
+    try {
+      const outdated = await invoke<ModInfo[]>('check_mod_updates');
+      if (outdated.length === 0) {
+        message.info('所有模组版本均为最新');
+      } else {
+        outdated.forEach((m) => updateMod(m.id, m));
+        message.warning(`发现 ${outdated.length} 个模组需要更新`);
+      }
+    } catch (e) {
+      message.error(`检查更新失败: ${e}`);
+    } finally {
+      setCheckingUpdates(false);
+    }
+  };
+
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <Select
-          value={filterStatus}
-          onChange={setFilterStatus}
-          options={filterOptions.map((o) => ({
-            value: o.value,
-            label: `${o.label} (${countByStatus(o.value)})`,
-          }))}
-          style={{ width: 160 }}
-        />
+        <Space>
+          <Select
+            value={filterStatus}
+            onChange={setFilterStatus}
+            options={filterOptions.map((o) => ({
+              value: o.value,
+              label: `${o.label} (${countByStatus(o.value)})`,
+            }))}
+            style={{ width: 160 }}
+          />
+          <Button
+            size="small"
+            icon={<SyncOutlined />}
+            onClick={handleCheckUpdates}
+            loading={checkingUpdates}
+          >
+            检查更新
+          </Button>
+        </Space>
 
         {selectedIds.size > 0 && (
           <Space>

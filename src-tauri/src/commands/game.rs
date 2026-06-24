@@ -11,7 +11,7 @@ pub async fn detect_game() -> Result<GameConfig, String> {
         .ok_or_else(|| "World of Tanks not found".to_string())?;
 
     let version = registry::detect_game_version(&path)
-        .unwrap_or_else(|| "1.28.0.0".to_string());
+        .unwrap_or_default();
 
     let res_mods_dir = registry::get_res_mods_dir(&path, &version);
     let mods_dir = registry::get_mods_dir(&path, &version);
@@ -38,7 +38,7 @@ pub async fn set_game_path(
     }
 
     let version = registry::detect_game_version(&game_path)
-        .unwrap_or_else(|| "1.28.0.0".to_string());
+        .unwrap_or_default();
 
     let game_region = GameRegion::from_str(&region);
     let res_mods_dir = registry::get_res_mods_dir(&game_path, &version);
@@ -69,7 +69,10 @@ pub async fn get_game_config() -> Result<GameConfig, String> {
 }
 
 #[tauri::command]
-pub async fn launch_game(state: State<'_, AppState>) -> Result<(), String> {
+pub async fn launch_game(
+    state: State<'_, AppState>,
+    args: Option<String>,
+) -> Result<(), String> {
     let game_dir = state.game_dir.lock().await.clone()
         .ok_or_else(|| "Game directory not configured".to_string())?;
 
@@ -77,8 +80,13 @@ pub async fn launch_game(state: State<'_, AppState>) -> Result<(), String> {
     let launcher_path = game_dir.join("WoTLauncher.exe");
 
     if exe_path.exists() {
-        std::process::Command::new(&exe_path)
-            .spawn()
+        let mut cmd = std::process::Command::new(&exe_path);
+        if let Some(launch_args) = args {
+            if !launch_args.is_empty() {
+                cmd.args(launch_args.split_whitespace());
+            }
+        }
+        cmd.spawn()
             .map_err(|e| format!("Failed to launch game: {}", e))?;
         Ok(())
     } else if launcher_path.exists() {

@@ -26,7 +26,7 @@ fn load_sync_config() -> (PathBuf, String, Vec<crate::models::ModInfo>) {
 
     let version = if !install_path.as_os_str().is_empty() {
         crate::utils::registry::detect_game_version(&install_path)
-            .unwrap_or_else(|| "1.28.0.0".to_string())
+            .unwrap_or_default()
     } else {
         String::new()
     };
@@ -91,6 +91,8 @@ pub fn run() {
             commands::mod_manager::batch_toggle_mods,
             commands::mod_manager::get_mod_detail,
             commands::mod_manager::refresh_mods,
+            commands::mod_manager::precheck_install_conflicts,
+            commands::mod_manager::check_mod_updates,
             commands::game::detect_game,
             commands::game::set_game_path,
             commands::game::get_game_config,

@@ -16,6 +16,7 @@ export function Settings() {
   const { gameConfig, setGameConfig } = useModStore();
   const [gamePath, setGamePath] = useState('');
   const [region, setRegion] = useState('EU');
+  const [launchArgs, setLaunchArgs] = useState('');
   const [detecting, setDetecting] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -58,7 +59,7 @@ export function Settings() {
 
   const handleLaunch = async () => {
     try {
-      await invoke('launch_game');
+      await invoke('launch_game', { args: launchArgs || null });
     } catch (e) {
       setStatus({ type: 'error', message: `启动失败: ${e}` });
     }
@@ -107,7 +108,7 @@ export function Settings() {
             <div style={{ padding: 12, background: 'var(--armory-gold-glow)', borderRadius: 6, marginBottom: 16 }}>
             <div style={{ marginBottom: 4 }}>
               <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 6 }} />
-              <Text>游戏版本: v{gameConfig.version}</Text>
+              <Text>游戏版本: {gameConfig.version ? `v${gameConfig.version}` : '未检测'}</Text>
             </div>
             <div>
               <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 6 }} />
@@ -124,6 +125,21 @@ export function Settings() {
             style={{ marginBottom: 16 }}
           />
         )}
+
+        <div style={{ marginBottom: 16 }}>
+          <label>
+            <Text strong style={{ display: 'block', marginBottom: 4 }}>启动参数（可选）</Text>
+            <Input
+              value={launchArgs}
+              onChange={(e) => setLaunchArgs(e.target.value)}
+              placeholder="-dx12 -maxMem=8192…"
+              name="launch-args"
+              autoComplete="off"
+              spellCheck={false}
+            />
+            <Text type="secondary" style={{ fontSize: 11, marginTop: 2, display: 'block' }}>启动游戏时附加的命令行参数</Text>
+          </label>
+        </div>
 
         <Space>
           <Button type="primary" icon={<FolderOpenOutlined />} onClick={handleSave}>

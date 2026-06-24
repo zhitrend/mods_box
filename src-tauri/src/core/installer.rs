@@ -29,11 +29,12 @@ impl ModInstaller {
         game_version: &str,
         strategy: ConflictStrategy,
         _mod_name: Option<String>,
+        installed_mods: &[ModInfo],
     ) -> Result<ModInfo> {
         let temp_dir = std::env::temp_dir().join(format!("wot_mod_{}", Uuid::new_v4()));
         file::ensure_dir(&temp_dir).await?;
         let extracted = Self::extract_zip(zip_path, &temp_dir, game_version)?;
-        Self::finalize_install(extracted, &temp_dir, zip_path, game_dir, game_version, strategy).await
+        Self::finalize_install(extracted, &temp_dir, zip_path, game_dir, game_version, strategy, installed_mods).await
     }
 
     pub async fn install_from_rar(
@@ -41,11 +42,12 @@ impl ModInstaller {
         game_dir: &Path,
         game_version: &str,
         strategy: ConflictStrategy,
+        installed_mods: &[ModInfo],
     ) -> Result<ModInfo> {
         let temp_dir = std::env::temp_dir().join(format!("wot_mod_{}", Uuid::new_v4()));
         file::ensure_dir(&temp_dir).await?;
         let extracted = Self::extract_rar(rar_path, &temp_dir, game_version)?;
-        Self::finalize_install(extracted, &temp_dir, rar_path, game_dir, game_version, strategy).await
+        Self::finalize_install(extracted, &temp_dir, rar_path, game_dir, game_version, strategy, installed_mods).await
     }
 
     async fn finalize_install(
@@ -55,12 +57,12 @@ impl ModInstaller {
         game_dir: &Path,
         game_version: &str,
         strategy: ConflictStrategy,
+        installed_mods: &[ModInfo],
     ) -> Result<ModInfo> {
-        let installed_mods = Vec::new();
         let mod_files: Vec<ModFile> = extracted.mod_files;
 
         let conflicts =
-            ConflictDetector::detect_conflicts(game_dir, &mod_files, &installed_mods);
+            ConflictDetector::detect_conflicts(game_dir, &mod_files, installed_mods);
         let has_conflicts = !conflicts.is_empty() && conflicts
             .iter()
             .any(|c| matches!(c.resolution, ConflictResolution::Pending));
@@ -348,14 +350,22 @@ impl ModInstaller {
             mod_files,
         })
     }
+    pub async fn extract_zip_precheck(
+        zip_path: &Path,
+        temp_dir: &Path,
+        game_version: &str,
+    ) -> Result<ExtractResult> {
+        let extracted = Self::extract_zip(zip_path, temp_dir, game_version)?;
+        Ok(extracted)
+    }
 }
 
-struct ExtractResult {
-    name: String,
-    version: String,
-    author: String,
-    description: String,
-    category: ModCategory,
-    tags: Vec<String>,
-    mod_files: Vec<ModFile>,
+pub(crate) struct ExtractResult {
+    pub(crate) name: String,
+    pub(crate) version: String,
+    pub(crate) author: String,
+    pub(crate) description: String,
+    pub(crate) category: ModCategory,
+    pub(crate) tags: Vec<String>,
+    pub(crate) mod_files: Vec<ModFile>,
 }

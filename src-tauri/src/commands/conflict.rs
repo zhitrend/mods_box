@@ -12,7 +12,7 @@ pub async fn detect_file_conflicts(
     let game_dir = state.game_dir.lock().await.clone()
         .ok_or_else(|| "Game directory not configured".to_string())?;
     let mods = state.mods.lock().await;
-    let game_ver = state.game_version.lock().await.clone().unwrap_or_else(|| "1.28.0.0".to_string());
+    let game_ver = state.game_version.lock().await.clone().unwrap_or_default();
 
     let zip_path = PathBuf::from(&file_path);
     if !zip_path.exists() {
@@ -26,9 +26,13 @@ pub async fn detect_file_conflicts(
     for i in 0..archive.len() {
         let entry = archive.by_index(i).map_err(|e| e.to_string())?;
         if !entry.is_dir() {
-            let relative_path = format!("res_mods/{}/{}",
-                game_ver,
-                entry.name().trim_start_matches("res_mods/"));
+            let relative_path = if game_ver.is_empty() {
+                entry.name().to_string()
+            } else {
+                format!("res_mods/{}/{}",
+                    game_ver,
+                    entry.name().trim_start_matches("res_mods/"))
+            };
             mod_files.push(ModFile {
                 relative_path,
                 hash: String::new(),
@@ -38,9 +42,10 @@ pub async fn detect_file_conflicts(
     }
 
     drop(archive);
+    let installed_mods = mods.clone();
     drop(mods);
 
-    let conflicts = ConflictDetector::detect_conflicts(&game_dir, &mod_files, &[]);
+    let conflicts = ConflictDetector::detect_conflicts(&game_dir, &mod_files, &installed_mods);
     Ok(conflicts)
 }
 

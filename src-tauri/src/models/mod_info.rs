@@ -74,11 +74,38 @@ pub enum ConflictResolution {
     Isolated,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum ConflictGrade {
+    High,
+    Medium,
+    Low,
+}
+
+impl ConflictGrade {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            ConflictGrade::High => "high",
+            ConflictGrade::Medium => "medium",
+            ConflictGrade::Low => "low",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "high" => ConflictGrade::High,
+            "medium" => ConflictGrade::Medium,
+            "low" => ConflictGrade::Low,
+            _ => ConflictGrade::Low,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConflictInfo {
     pub file_path: String,
     pub conflict_with: Vec<String>,
     pub resolution: ConflictResolution,
+    pub grade: ConflictGrade,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

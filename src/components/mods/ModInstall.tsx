@@ -5,7 +5,8 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useModStore } from '../../stores/modStore';
 import { Card, Button, Typography, Tag, message, Row, Col } from 'antd';
 import { InboxOutlined, DownloadOutlined, LoadingOutlined } from '@ant-design/icons';
-import { ModInfo } from '../../types';
+import { ConflictResolver } from './ConflictResolver';
+import { ModInfo, ConflictInfo } from '../../types';
 
 const { Title, Text } = Typography;
 
@@ -20,9 +21,12 @@ export function ModInstall() {
   const { addMod, gameConfig } = useModStore();
   const [installing, setInstalling] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [pendingFile, setPendingFile] = useState<string | null>(null);
+  const [pendingConflicts, setPendingConflicts] = useState<ConflictInfo[]>([]);
+  const [pendingModName, setPendingModName] = useState('');
   const dropRef = useRef<HTMLDivElement>(null);
 
-  const handleInstall = useCallback(async (filePath: string) => {
+  const handleInstall = useCallback(async (filePath: string, strategy: string) => {
     if (!gameConfig) {
       message.error('请先在设置中配置游戏路径');
       return;
@@ -31,7 +35,7 @@ export function ModInstall() {
     try {
       const mod = await invoke<ModInfo>('install_mod', {
         filePath,
-        strategy: 'smartMerge',
+        strategy,
       });
       addMod(mod);
       message.success(`模组 "${mod.name}" 安装成功`);
@@ -41,6 +45,44 @@ export function ModInstall() {
       setInstalling(false);
     }
   }, [gameConfig, addMod]);
+
+  const precheckAndInstall = useCallback(async (filePath: string) => {
+    if (!gameConfig) {
+      message.error('请先在设置中配置游戏路径');
+      return;
+    }
+
+    setInstalling(true);
+    try {
+      const [conflicts, modInfo] = await invoke<[ConflictInfo[], ModInfo]>(
+        'precheck_install_conflicts',
+        { filePath }
+      );
+
+      if (conflicts.length > 0) {
+        setPendingFile(filePath);
+        setPendingConflicts(conflicts);
+        setPendingModName(modInfo.name);
+        return;
+      }
+
+      await handleInstall(filePath, 'smartMerge');
+    } catch (e) {
+      message.error(`检查失败: ${e}`);
+    } finally {
+      setInstalling(false);
+    }
+  }, [gameConfig, handleInstall]);
+
+  const handleResolve = async (strategy: string) => {
+    setPendingConflicts([]);
+    setPendingModName('');
+    const filePath = pendingFile;
+    setPendingFile(null);
+    if (filePath) {
+      await handleInstall(filePath, strategy);
+    }
+  };
 
   useEffect(() => {
     const unlisten: (() => void)[] = [];
@@ -58,12 +100,12 @@ export function ModInstall() {
             message.warning('不支持的格式，仅支持 ZIP / WOTMOD / RAR');
             return;
           }
-          handleInstall(valid[0]);
+          precheckAndInstall(valid[0]);
         }
       }
     }).then((fn) => unlisten.push(fn));
     return () => { unlisten.forEach((fn) => fn()); };
-  }, [handleInstall]);
+  }, [precheckAndInstall]);
 
   const handleFileSelect = async () => {
     try {
@@ -75,7 +117,7 @@ export function ModInstall() {
         }],
       });
       if (selected) {
-        await handleInstall(selected);
+        await precheckAndInstall(selected);
       }
     } catch (e) {
       console.error('File selection failed:', e);
@@ -161,6 +203,18 @@ export function ModInstall() {
           ))}
         </Row>
       </Card>
+      {pendingConflicts.length > 0 && (
+        <ConflictResolver
+          modName={pendingModName}
+          conflicts={pendingConflicts}
+          onResolve={handleResolve}
+          onCancel={() => {
+            setPendingConflicts([]);
+            setPendingFile(null);
+            setPendingModName('');
+          }}
+        />
+      )}
     </div>
   );
 }

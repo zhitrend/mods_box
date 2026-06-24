@@ -119,6 +119,14 @@ function AppContent() {
       } catch (e) {
         console.log('No game config yet:', e);
       }
+      try {
+        const outdated = await invoke<ModInfo[]>('check_mod_updates');
+        if (outdated.length > 0) {
+          outdated.forEach((m) => useModStore.getState().updateMod(m.id, m));
+        }
+      } catch {
+        // not critical
+      }
     }
     init();
   }, [isBound]);
