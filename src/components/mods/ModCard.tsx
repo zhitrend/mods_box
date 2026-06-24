@@ -48,12 +48,17 @@ export function ModCard({ mod, onToggle, onUninstall, onDetail }: ModCardProps) 
     <Card
       size="small"
       className="hoverable-card animate-in"
-      style={{ position: 'relative', borderLeft: mod.enabled ? '3px solid var(--armory-gold)' : '3px solid var(--armory-border)' }}
+      style={{ 
+        position: 'relative', 
+        borderLeft: mod.enabled ? '4px solid var(--armory-gold)' : '4px solid var(--armory-border)',
+        borderRadius: 'var(--armory-radius-md)',
+        background: 'var(--armory-elevated)'
+      }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 'var(--armory-spacing-md)' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <span style={{ fontWeight: 600, fontSize: 15, color: 'var(--armory-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--armory-spacing-sm)', marginBottom: 'var(--armory-spacing-xs)' }}>
+            <span style={{ fontWeight: 600, fontSize: 16, color: 'var(--armory-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {mod.name}
             </span>
             {mod.status === 'Conflict' && (
@@ -62,17 +67,17 @@ export function ModCard({ mod, onToggle, onUninstall, onDetail }: ModCardProps) 
               </Tooltip>
             )}
           </div>
-          <div style={{ fontSize: 12, color: 'var(--armory-text-secondary)', marginBottom: 10, fontFamily: 'Rajdhani, sans-serif' }}>
+          <div style={{ fontSize: 12, color: 'var(--armory-text-secondary)', marginBottom: 'var(--armory-spacing-sm)', fontFamily: 'Rajdhani, sans-serif' }}>
             v{mod.version} <span style={{ margin: '0 6px', opacity: 0.3 }}>|</span> {mod.author}
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
-            <Tag color={statusColorMap[mod.status] || 'default'} style={{ borderRadius: 4, fontWeight: 500 }}>{STATUS_LABELS[mod.status]}</Tag>
-            <Tag color={categoryColorMap[mod.category] || 'default'} style={{ borderRadius: 4, fontWeight: 500 }}>{CATEGORY_LABELS[mod.category]}</Tag>
-            <span style={{ fontSize: 11, color: 'var(--armory-text-dim)', marginLeft: 4, fontFamily: 'monospace' }}>{formatFileSize(mod.file_size)}</span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--armory-spacing-xs)', alignItems: 'center' }}>
+            <Tag color={statusColorMap[mod.status] || 'default'} style={{ borderRadius: 'var(--armory-radius-sm)', fontWeight: 500 }}>{STATUS_LABELS[mod.status]}</Tag>
+            <Tag color={categoryColorMap[mod.category] || 'default'} style={{ borderRadius: 'var(--armory-radius-sm)', fontWeight: 500 }}>{CATEGORY_LABELS[mod.category]}</Tag>
+            <span style={{ fontSize: 11, color: 'var(--armory-text-dim)', marginLeft: 'var(--armory-spacing-xs)', fontFamily: 'monospace' }}>{formatFileSize(mod.file_size)}</span>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--armory-spacing-xs)', flexShrink: 0 }}>
           <Switch
             checked={mod.enabled}
             onChange={() => onToggle(mod.id)}
@@ -88,9 +93,20 @@ export function ModCard({ mod, onToggle, onUninstall, onDetail }: ModCardProps) 
       </div>
 
       {mod.conflicts.length > 0 && (
-        <div style={{ marginTop: 12, padding: '6px 10px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 6, fontSize: 12, color: 'var(--armory-error)', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ 
+          marginTop: 'var(--armory-spacing-sm)', 
+          padding: '6px 10px', 
+          background: 'var(--armory-error-glow)', 
+          border: '1px solid rgba(239, 68, 68, 0.2)', 
+          borderRadius: 'var(--armory-radius-sm)', 
+          fontSize: 12, 
+          color: 'var(--armory-error)', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 'var(--armory-spacing-sm)' 
+        }}>
           <WarningOutlined style={{ fontSize: 12 }} />
-          <span>与 {mod.conflicts.length} 个文件存在冲突</span>
+          <span style={{ fontWeight: 500 }}>与 {mod.conflicts.length} 个文件存在冲突</span>
         </div>
       )}
     </Card>

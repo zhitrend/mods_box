@@ -24,13 +24,13 @@ export function Header() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           allowClear
-          variant="borderless"
+          variant="outlined"
           name="search"
           autoComplete="off"
           spellCheck={false}
           style={{
             background: 'var(--armory-bg)',
-            borderRadius: 6,
+            borderRadius: 'var(--armory-radius-sm)',
             height: 36,
           }}
         />

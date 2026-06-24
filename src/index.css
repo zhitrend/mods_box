@@ -11,6 +11,7 @@
   --armory-gold: #d4af37;
   --armory-gold-dim: #a68a30;
   --armory-gold-glow: rgba(212, 175, 55, 0.12);
+  --armory-gold-strong: rgba(212, 175, 555, 0.25);
   --armory-accent: #f1d38a;
   --armory-cyan: #00f2ff;
   --armory-cyan-glow: rgba(0, 242, 255, 0.15);
@@ -23,7 +24,23 @@
   /* State Colors */
   --armory-success: #10b981;
   --armory-error: #ef4444;
+  --armory-error-glow: rgba(239, 68, 68, 0.1);
   --armory-warning: #f59e0b;
+
+  /* Spacing & Radius */
+  --armory-radius-sm: 4px;
+  --armory-radius-md: 8px;
+  --armory-radius-lg: 12px;
+  --armory-spacing-xs: 4px;
+  --armory-spacing-sm: 8px;
+  --armory-spacing-md: 16px;
+  --armory-spacing-lg: 24px;
+
+  /* Shadows */
+  --armory-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --armory-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --armory-shadow-gold: 0 4px 20px var(--armory-gold-glow);
+
 
   font-family: 'Outfit', 'Rajdhani', sans-serif;
   color: var(--armory-text);
@@ -212,7 +229,7 @@ body::after {
 .ant-input-focused,
 .ant-input:focus {
   border-color: var(--armory-gold-dim) !important;
-  box-shadow: 0 0 0 2px var(--armory-gold-glow) !important;
+  box-shadow: none !important;
 }
 
 .ant-input::placeholder {

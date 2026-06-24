@@ -113,26 +113,26 @@ export function Sidebar() {
               onClick={() => navigate(item.path)}
               aria-current={isActive ? 'page' : undefined}
               aria-label={item.label}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                padding: '10px 16px',
-                margin: '2px 8px',
-                borderRadius: 6,
-                cursor: 'pointer',
-                fontSize: 15,
-                fontFamily: "'Rajdhani', sans-serif",
-                fontWeight: 500,
-                letterSpacing: '0.02em',
-                color: isActive ? 'var(--armory-gold)' : 'var(--armory-text-secondary)',
-                background: isActive ? 'var(--armory-gold-glow)' : 'transparent',
-                border: 'none',
-                width: sidebarCollapsed ? 'auto' : 'calc(100% - 16px)',
-                textAlign: 'left',
-                position: 'relative',
-                transition: 'color 0.2s ease, background-color 0.2s ease',
-              }}
+               style={{
+                 display: 'flex',
+                 alignItems: 'center',
+                 gap: 'var(--armory-spacing-sm)',
+                 padding: '10px 16px',
+                 margin: '2px 8px',
+                 borderRadius: 'var(--armory-radius-sm)',
+                 cursor: 'pointer',
+                 fontSize: 15,
+                 fontFamily: "'Rajdhani', sans-serif",
+                 fontWeight: 500,
+                 letterSpacing: '0.02em',
+                 color: isActive ? 'var(--armory-gold)' : 'var(--armory-text-secondary)',
+                 background: isActive ? 'var(--armory-gold-glow)' : 'transparent',
+                 border: 'none',
+                 width: sidebarCollapsed ? 'auto' : 'calc(100% - 16px)',
+                 textAlign: 'left',
+                 position: 'relative',
+                 transition: 'all 0.2s ease',
+               }}
               className={isActive ? undefined : 'nav-item'}
             >
               {isActive && (
