@@ -47,47 +47,50 @@ export function ModCard({ mod, onToggle, onUninstall, onDetail }: ModCardProps) 
   return (
     <Card
       size="small"
-      hoverable
-      style={{ position: 'relative' }}
+      className="hoverable-card animate-in"
+      style={{ position: 'relative', borderLeft: mod.enabled ? '3px solid var(--armory-gold)' : '3px solid var(--armory-border)' }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-            <span style={{ fontWeight: 500, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <span style={{ fontWeight: 600, fontSize: 15, color: 'var(--armory-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {mod.name}
             </span>
             {mod.status === 'Conflict' && (
-              <WarningOutlined style={{ color: '#ff4d4f', fontSize: 14 }} />
+              <Tooltip title="存在模组冲突">
+                <WarningOutlined style={{ color: 'var(--armory-error)', fontSize: 14 }} />
+              </Tooltip>
             )}
           </div>
-          <div style={{ fontSize: 12, color: 'var(--armory-text-secondary)', marginBottom: 8 }}>
-            v{mod.version} · {mod.author}
+          <div style={{ fontSize: 12, color: 'var(--armory-text-secondary)', marginBottom: 10, fontFamily: 'Rajdhani, sans-serif' }}>
+            v{mod.version} <span style={{ margin: '0 6px', opacity: 0.3 }}>|</span> {mod.author}
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
-            <Tag color={statusColorMap[mod.status] || 'default'}>{STATUS_LABELS[mod.status]}</Tag>
-            <Tag color={categoryColorMap[mod.category] || 'default'}>{CATEGORY_LABELS[mod.category]}</Tag>
-            <span style={{ fontSize: 12, color: 'var(--armory-text-dim)' }}>{formatFileSize(mod.file_size)}</span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+            <Tag color={statusColorMap[mod.status] || 'default'} style={{ borderRadius: 4, fontWeight: 500 }}>{STATUS_LABELS[mod.status]}</Tag>
+            <Tag color={categoryColorMap[mod.category] || 'default'} style={{ borderRadius: 4, fontWeight: 500 }}>{CATEGORY_LABELS[mod.category]}</Tag>
+            <span style={{ fontSize: 11, color: 'var(--armory-text-dim)', marginLeft: 4, fontFamily: 'monospace' }}>{formatFileSize(mod.file_size)}</span>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
           <Switch
             checked={mod.enabled}
             onChange={() => onToggle(mod.id)}
             size="small"
           />
           <Tooltip title="详情">
-            <Button type="text" size="small" icon={<InfoCircleOutlined />} onClick={() => onDetail(mod)} aria-label="查看详情" />
+            <Button type="text" size="small" icon={<InfoCircleOutlined />} onClick={() => onDetail(mod)} style={{ color: 'var(--armory-text-secondary)' }} />
           </Tooltip>
           <Tooltip title="卸载">
-            <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={handleUninstallClick} aria-label="卸载模组" />
+            <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={handleUninstallClick} />
           </Tooltip>
         </div>
       </div>
 
       {mod.conflicts.length > 0 && (
-        <div style={{ marginTop: 8, padding: 6, background: 'rgba(255,77,79,0.08)', borderRadius: 4, fontSize: 12, color: 'var(--armory-error)' }}>
-          与 {mod.conflicts.length} 个文件存在冲突
+        <div style={{ marginTop: 12, padding: '6px 10px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 6, fontSize: 12, color: 'var(--armory-error)', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <WarningOutlined style={{ fontSize: 12 }} />
+          <span>与 {mod.conflicts.length} 个文件存在冲突</span>
         </div>
       )}
     </Card>

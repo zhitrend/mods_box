@@ -1,18 +1,29 @@
 :root {
-  --armory-bg: #0d0f14;
-  --armory-surface: #161a22;
-  --armory-elevated: #1e2330;
-  --armory-border: #2a3040;
-  --armory-gold: #cba258;
-  --armory-gold-dim: #8a7540;
-  --armory-gold-glow: rgba(203, 162, 88, 0.15);
-  --armory-accent: #e8c76a;
-  --armory-text: #e8e6e1;
-  --armory-text-secondary: #8a8d95;
-  --armory-text-dim: #5a5e68;
-  --armory-success: #52c41a;
-  --armory-error: #ff4d4f;
-  --armory-warning: #faad14;
+  /* Base Palette - Deep Industrial Space */
+  --armory-bg: #0a0c10;
+  --armory-surface: #12151c;
+  --armory-elevated: #1c212d;
+  --armory-overlay: #252b3d;
+  --armory-border: #2d3548;
+  --armory-border-bright: #3d465c;
+
+  /* Brand Accents - Refined Gold & Tech Cyan */
+  --armory-gold: #d4af37;
+  --armory-gold-dim: #a68a30;
+  --armory-gold-glow: rgba(212, 175, 55, 0.12);
+  --armory-accent: #f1d38a;
+  --armory-cyan: #00f2ff;
+  --armory-cyan-glow: rgba(0, 242, 255, 0.15);
+
+  /* Typography */
+  --armory-text: #eef1f5;
+  --armory-text-secondary: #9ca3af;
+  --armory-text-dim: #6b7280;
+
+  /* State Colors */
+  --armory-success: #10b981;
+  --armory-error: #ef4444;
+  --armory-warning: #f59e0b;
 
   font-family: 'Outfit', 'Rajdhani', sans-serif;
   color: var(--armory-text);
